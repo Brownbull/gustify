@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-02-24 — Canonical Ingredients Dictionary (#3)
+
+### Added
+- `src/types/ingredient.ts`: TypeScript interfaces for the canonical ingredient model
+  - `IngredientCategory` union type (Protein, Vegetable, Fruit, Grain, Dairy, Spice, Herb, Condiment, Other)
+  - `CanonicalIngredient` interface with `id`, `names` (es/en), `category`, `defaultUnit`, `shelfLifeDays`, `substitutions`
+- `scripts/data/canonical-ingredients.ts`: 70 canonical ingredients (Chilean Spanish) grouped by category
+  - Proteins (12), Vegetables (16), Fruits (7), Grains (7), Dairy (5), Spices (7), Herbs (5), Condiments (11)
+- `scripts/seed-ingredients.ts`: Idempotent seed script using `firebase-admin`
+  - Reads from staging credentials; skips existing documents; logs added vs skipped counts
+- `src/services/ingredients.ts`: Client-side Firestore query service
+  - `getCanonicalIngredients()` — fetch full collection
+  - `getCanonicalIngredient(id)` — fetch single ingredient by ID (returns `null` if not found)
+  - `getIngredientsByCategory(category)` — filter by `IngredientCategory`
+- `package.json`: added `seed:ingredients` script (`npx tsx scripts/seed-ingredients.ts`)
+- 10 Vitest unit tests for the ingredient service (total: 37 tests)
+
+### Notes
+- Ingredient document ID equals the `id` field; `docToIngredient` gives document ID precedence to prevent stale `id` fields in data
+- Seed script is safe to re-run; documents already in Firestore are skipped
+
 ## [0.2.0] — 2026-02-24 — Auth: Firebase Auth + Google OAuth (#2)
 
 ### Added
