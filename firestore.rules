@@ -3,8 +3,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // WARNING: These rules cover Gustify paths only.
     // DO NOT deploy to production — this will OVERWRITE Gastify's rules.
-    // For Phase 1, use with emulators only.
-    // A shared rules file must be established before production deploy.
+    // This file is a REFERENCE for staging/production rules.
+    // Deploy rules via the Firebase Console or coordinate with Gastify.
 
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;

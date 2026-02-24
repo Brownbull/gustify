@@ -55,7 +55,7 @@ export default function LoginPage() {
         )}
 
         <p className="mt-16 text-xs text-primary-dark/40">
-          KUJTA AI
+          Khujta AI
         </p>
       </div>
     </div>

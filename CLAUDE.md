@@ -5,7 +5,7 @@
 A **cooking companion PWA** that transforms grocery purchases into culinary exploration.
 It integrates with **Gastify** (sister expense-tracking app) to auto-populate pantry inventory from receipts, suggests recipes based on what's available, and guides users on a personalized culinary growth journey.
 
-**Brand:** KUJTA AI · Gustify = "gusto" (taste/pleasure) + -ify · mirrors sister app Gastify ("gasto" = expense)
+**Brand:** Khujta AI · Gustify = "gusto" (taste/pleasure) + -ify · mirrors sister app Gastify ("gasto" = expense)
 **Markets:** Chile first → Latin America → Spain → United States
 **Language:** Spanish-first UI (`es`), i18n later
 
@@ -37,7 +37,9 @@ The project foundation has been scaffolded. Planning artifacts are present along
 | Deployment   | Firebase Hosting                        |
 | Database+    | PostgreSQL via Supabase/Neon (Phase 2)  |
 
-**Shared Firebase project with Gastify** — same Auth + same Firestore instance.
+**Shared Firebase projects with Gastify:**
+- **Staging:** `boletapp-staging` (local dev + testing)
+- **Production:** `boletapp-d609f` (production builds + deployment)
 
 ---
 
@@ -106,22 +108,27 @@ cookedIngredients: string[]  // canonicalIds of ingredients used
 ### Prerequisites
 - Node.js 20+
 - Firebase CLI (`npm install -g firebase-tools`)
-- Copy `.env.example` to `.env` and fill in values from Firebase Console > Project Settings > Web app (boletapp-d609f)
+- `.env` file is pre-configured with staging credentials (boletapp-staging)
+
+### Environments
+
+| Environment | Firebase Project | Usage |
+|-------------|-----------------|-------|
+| **Staging** | `boletapp-staging` | Local dev (`npm run dev`), testing |
+| **Production** | `boletapp-d609f` | Production builds (`npm run build`) |
+
+- `.env` → staging (loaded by `npm run dev`)
+- `.env.production` → production (loaded by `npm run build`)
+- No emulators — local dev connects directly to the staging Firebase project
 
 ### Running locally
 
 ```bash
-# Terminal 1 — Firebase emulators (Auth + Firestore)
-npm run emulators          # uses demo-gustify project, ports: Auth 9099, Firestore 8080, UI 4000
-
-# Terminal 2 — Vite dev server
-npm run dev                # http://localhost:5173
+npm run dev                # http://localhost:5175 → connects to boletapp-staging
 ```
 
-`VITE_E2E_MODE=emulator` in `.env` forces emulator use in dev mode (default when `import.meta.env.DEV` is true).
-
 ### Important: Firestore rules
-`firestore.rules` is for **emulator use only** and covers Gustify paths only. It **must not be deployed** to the shared `boletapp-d609f` project — doing so would overwrite Gastify's production rules. A unified rules file must be coordinated with the Gastify project before any production deployment.
+`firestore.rules` is a **reference file only** covering Gustify paths. It **must not be deployed** to the shared Firebase projects — doing so would overwrite Gastify's rules. Deploy rules via Firebase Console or coordinate with the Gastify project.
 
 ### Deploying
 ```bash
@@ -149,7 +156,7 @@ npm run deploy             # builds and deploys to Firebase Hosting target "gust
 | `docs/scope/gustify_prd_20260224.md` | Full PRD — requirements, schema, roadmap |
 | `docs/mockups/v0/gustify_v0.jsx` | UI reference prototype (React, not production) |
 | `CLAUDE.md` | This file — project memory for AI tools |
-| `src/config/firebase.ts` | Firebase app, Auth, and Firestore initialization; emulator detection via `VITE_E2E_MODE` |
+| `src/config/firebase.ts` | Firebase app, Auth, and Firestore initialization |
 | `src/lib/queryClient.ts` | TanStack Query client with default stale-time and retry config |
 | `src/main.tsx` | App entry point — initializes Firebase before React mounts |
 | `src/App.tsx` | Root component (placeholder until feature views are added) |
@@ -162,7 +169,9 @@ npm run deploy             # builds and deploys to Firebase Hosting target "gust
 | `firebase.json` | Firebase Hosting config + emulator ports (Auth:9099, Firestore:8080, UI:4000) |
 | `.firebaserc` | Firebase project alias — `default` maps to `boletapp-d609f` |
 | `firestore.rules` | Firestore security rules — EMULATOR ONLY, do not deploy to production |
-| `.env.example` | Required `VITE_FIREBASE_*` env vars template |
+| `.env.example` | Template for `VITE_FIREBASE_*` env vars |
+| `.env` | Staging Firebase credentials (boletapp-staging) — not committed |
+| `.env.production` | Production Firebase credentials (boletapp-d609f) — not committed |
 
 ---
 
@@ -220,4 +229,4 @@ gh issue list --state closed          # is the issue already closed?
 ## Related Projects
 
 - **Gastify** (`github.com/Brownbull/gastify` or similar) — sister app, shares Firebase project
-- **KUJTA AI** — parent company umbrella
+- **Khujta AI** — parent company umbrella

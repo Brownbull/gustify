@@ -21,12 +21,12 @@ Gustify is a **cooking companion PWA** that transforms grocery purchases into cu
 | **Root word**      | "Gusto" — taste, pleasure, preference (ES) / enthusiasm, zest (EN) |
 | **Syllables**      | 3 (GUS-ti-fy)                                                      |
 | **Pattern**        | [Spanish root] + -ify (mirrors Gastify: GASt-ify ↔ GUSt-ify)       |
-| **Parent company** | KUJTA AI                                                           |
+| **Parent company** | Khujta AI                                                          |
 | **Sister app**     | Gastify (expense tracking, formerly Boletapp)                      |
 
 **Brand ecosystem:**
 ```
-KUJTA AI
+Khujta AI
 ├── Gastify  → "gasto" (expense)  → tracks what you spend
 └── Gustify  → "gusto" (taste)    → transforms what you bought into what you love
 ```

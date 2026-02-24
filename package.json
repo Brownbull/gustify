@@ -9,7 +9,6 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "emulators": "firebase emulators:start --only auth,firestore --project demo-gustify",
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "npm run build && firebase deploy --only hosting:gustify"
