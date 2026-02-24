@@ -8,7 +8,6 @@ import {
   persistentMultipleTabManager,
 } from 'firebase/firestore'
 
-// Validate required environment variables
 const requiredEnvVars = [
   'VITE_FIREBASE_API_KEY',
   'VITE_FIREBASE_AUTH_DOMAIN',
@@ -38,10 +37,8 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase app (singleton pattern)
 export const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig)
 
-// Check if we should use emulator mode
 const shouldUseEmulators = (): boolean => {
   const e2eMode = import.meta.env.VITE_E2E_MODE || 'emulator'
   if (e2eMode === 'production') return false
@@ -50,7 +47,6 @@ const shouldUseEmulators = (): boolean => {
   return isDev
 }
 
-// Initialize Firebase Auth
 export const auth: Auth = getAuth(app)
 
 // Initialize Firestore with special handling for emulator mode
@@ -119,7 +115,6 @@ function getFirestoreInstance(): Firestore {
 
 export const db: Firestore = getFirestoreInstance()
 
-// Track emulator connection state to prevent double-connection errors
 let emulatorsConnected = false
 
 /**
@@ -162,5 +157,4 @@ function connectToEmulators(): void {
   }
 }
 
-// Auto-connect to emulators in development mode
 connectToEmulators()
