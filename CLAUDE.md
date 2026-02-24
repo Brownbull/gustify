@@ -188,6 +188,29 @@ npm run deploy             # builds and deploys to Firebase Hosting target "gust
 
 ---
 
+## Workflow Rules
+
+**`/next-task` runs end-to-end autonomously — it creates the branch, writes the code, opens the PR, and merges it.**
+
+Before running `/ship` manually, always verify there is actually unshipped work:
+
+```bash
+git fetch origin
+git log origin/main..HEAD --oneline   # empty = already merged, nothing to do
+gh pr list --state open               # any open PR for this branch?
+gh issue list --state closed          # is the issue already closed?
+```
+
+| Situation | Action |
+|-----------|--------|
+| `/next-task` ran to completion | Nothing — it already shipped |
+| `/next-task` was interrupted mid-way | Run `/ship` to finish |
+| You wrote code manually on a branch | Run `/ship` |
+
+**Never run `/ship` on a branch whose issue is already closed.**
+
+---
+
 ## Related Projects
 
 - **Gastify** (`github.com/Brownbull/gastify` or similar) — sister app, shares Firebase project
