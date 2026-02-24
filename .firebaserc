@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "boletapp-d609f"
+  },
+  "targets": {
+    "boletapp-d609f": {
+      "hosting": {
+        "gustify": [
+          "gustify"
+        ]
+      }
+    }
+  }
+}
