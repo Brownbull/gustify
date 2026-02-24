@@ -19,7 +19,7 @@ The project foundation has been scaffolded. Planning artifacts are present along
 - `docs/scope/gustify_prd_20260224.md` — full PRD (single source of truth)
 - `docs/mockups/v0/gustify_v0.jsx` — React prototype (reference only, not production code)
 
-**Issues #1, #2, and #3 are complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project. Firebase Auth with Google OAuth is implemented: sign-in/sign-out, automatic Firestore user profile creation, a Zustand auth store, `LoginPage`, and `ProtectedRoute` are all wired up with 36 Vitest tests. The canonical ingredients dictionary (68 ingredients, Chilean Spanish) is seeded to Firestore with a client-side query service.
+**Issues #1, #2, and #3 are complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project. Firebase Auth with Google OAuth is implemented: sign-in/sign-out, automatic Firestore user profile creation, a Zustand auth store, `LoginPage`, and `ProtectedRoute` are all wired up with 37 Vitest tests. The canonical ingredients dictionary (70 ingredients, Chilean Spanish) is seeded to Firestore with a client-side query service.
 
 ---
 
@@ -177,7 +177,7 @@ npm run e2e:seed                       # re-seed (idempotent)
 ### Seeding data
 
 ```bash
-npm run seed:ingredients    # seed 68 canonical ingredients to staging Firestore (idempotent)
+npm run seed:ingredients    # seed 70 canonical ingredients to staging Firestore (idempotent)
 ```
 
 ---
@@ -209,7 +209,7 @@ npm run seed:ingredients    # seed 68 canonical ingredients to staging Firestore
 | `src/types/ingredient.ts` | TypeScript interfaces: `CanonicalIngredient`, `IngredientCategory` |
 | `src/services/auth.ts` | Auth service — `signInWithGoogle`, `signOutUser`, `ensureUserProfile`, `subscribeToAuth` |
 | `src/services/ingredients.ts` | Ingredient service — `getCanonicalIngredients`, `getCanonicalIngredient`, `getIngredientsByCategory` |
-| `scripts/data/canonical-ingredients.ts` | 68 canonical ingredient seed data (Chilean Spanish) |
+| `scripts/data/canonical-ingredients.ts` | 70 canonical ingredient seed data (Chilean Spanish) |
 | `scripts/seed-ingredients.ts` | Seed canonical ingredients to staging Firestore (idempotent) |
 | `src/stores/authStore.ts` | Zustand auth store — `useAuthStore` (user, loading, error, signIn, signOut) |
 | `src/components/ProtectedRoute.tsx` | Route guard — shows `LoginPage` when unauthenticated, spinner while loading |
