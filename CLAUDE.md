@@ -135,6 +135,45 @@ npm run dev                # http://localhost:5175 → connects to boletapp-stag
 npm run deploy             # builds and deploys to Firebase Hosting target "gustify"
 ```
 
+### E2E Testing
+
+E2E tests use **Playwright** and run against the **staging Firebase project** (boletapp-staging). Test users authenticate via Firebase custom tokens (no Google OAuth popup).
+
+**Setup (one-time):**
+```bash
+npx playwright install chromium       # install browser
+npm run e2e:seed                       # seed 4 test users into staging
+```
+
+**Running tests:**
+```bash
+npm run e2e                # run all tests (auto-starts dev server)
+npm run e2e:headed         # run with visible browser
+npm run e2e:ui             # interactive Playwright UI
+```
+
+**Test users (seeded in staging):**
+
+| User | UID | Tier | Notes |
+|------|-----|------|-------|
+| Ana Principiante | `test-principiante-001` | Principiante | New user |
+| Bruno Comodo | `test-comodo-001` | Comodo | Gluten-free, shellfish allergy |
+| Carla Aventurera | `test-aventurero-001` | Aventurero | Dark theme |
+| Diego Avanzado | `test-avanzado-001` | Avanzado | Vegetarian |
+
+**Results folder** (`test-results/`, gitignored):
+- `html-report/` — HTML test report
+- `artifacts/` — screenshots on failure, traces on retry
+
+**Auth bridge:** `src/config/firebase.ts` exposes `window.__GUSTIFY_SIGN_IN__` and `window.__GUSTIFY_SIGN_OUT__` when `VITE_E2E_MODE=true` (dev only, tree-shaken in production).
+
+**Important:** Playwright config loads `.env` explicitly to override shell env vars that may point to production.
+
+```bash
+npm run e2e:cleanup                    # remove test users from staging
+npm run e2e:seed                       # re-seed (idempotent)
+```
+
 ---
 
 ## Development Conventions
@@ -166,7 +205,11 @@ npm run deploy             # builds and deploys to Firebase Hosting target "gust
 | `src/components/ProtectedRoute.tsx` | Route guard — shows `LoginPage` when unauthenticated, spinner while loading |
 | `src/pages/LoginPage.tsx` | Google OAuth sign-in page (Spanish UI) |
 | `src/test/setup.ts` | Vitest global test setup — registers `@testing-library/jest-dom` matchers |
-| `firebase.json` | Firebase Hosting config + emulator ports (Auth:9099, Firestore:8080, UI:4000) |
+| `playwright.config.ts` | Playwright E2E config — staging env, mobile viewport, sequential workers |
+| `e2e/fixtures/test-users.ts` | 4 test user personas (Principiante → Avanzado) with Firestore docs |
+| `e2e/fixtures/auth.ts` | Playwright fixture: `loginAs()`, `logout()` via custom tokens |
+| `e2e/scripts/seed-test-users.ts` | Seed test users to staging Firebase (Auth + Firestore) |
+| `firebase.json` | Firebase Hosting config |
 | `.firebaserc` | Firebase project alias — `default` maps to `boletapp-d609f` |
 | `firestore.rules` | Firestore security rules — EMULATOR ONLY, do not deploy to production |
 | `.env.example` | Template for `VITE_FIREBASE_*` env vars |

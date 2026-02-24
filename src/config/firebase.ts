@@ -66,3 +66,14 @@ function getFirestoreInstance(): Firestore {
 }
 
 export const db: Firestore = getFirestoreInstance()
+
+// E2E testing bridge — expose auth helpers for Playwright's page.evaluate()
+// Double-gated: DEV mode + VITE_E2E_MODE env var. Tree-shaken in production builds.
+if (import.meta.env.DEV && import.meta.env.VITE_E2E_MODE === 'true') {
+  import('firebase/auth').then(({ signInWithCustomToken, signOut }) => {
+    ;(window as any).__GUSTIFY_AUTH__ = auth
+    ;(window as any).__GUSTIFY_SIGN_IN__ = (token: string) =>
+      signInWithCustomToken(auth, token)
+    ;(window as any).__GUSTIFY_SIGN_OUT__ = () => signOut(auth)
+  })
+}

@@ -19,3 +19,12 @@ coverage/
 
 # Keys
 .keys/
+
+# E2E manual screenshots (persistent per-spec folders, updated on re-run)
+test-results/*
+!test-results/INDEX.md
+
+# Playwright auto-artifacts (traces, failure screenshots, videos — cleaned per run)
+playwright-artifacts/
+playwright-report/
+playwright/.cache/
