@@ -5,15 +5,21 @@ import {
   getDocs,
   query,
   where,
+  type QueryDocumentSnapshot,
+  type DocumentData,
 } from 'firebase/firestore'
 import { db } from '@/config/firebase'
 import type { CanonicalIngredient, IngredientCategory } from '@/types/ingredient'
 
 const COLLECTION = 'canonicalIngredients'
 
+function docToIngredient(d: QueryDocumentSnapshot<DocumentData>): CanonicalIngredient {
+  return { ...d.data(), id: d.id } as CanonicalIngredient
+}
+
 export async function getCanonicalIngredients(): Promise<CanonicalIngredient[]> {
   const snapshot = await getDocs(collection(db, COLLECTION))
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as CanonicalIngredient)
+  return snapshot.docs.map(docToIngredient)
 }
 
 export async function getCanonicalIngredient(
@@ -23,7 +29,7 @@ export async function getCanonicalIngredient(
 
   if (!snapshot.exists()) return null
 
-  return { id: snapshot.id, ...snapshot.data() } as CanonicalIngredient
+  return { ...snapshot.data(), id: snapshot.id } as CanonicalIngredient
 }
 
 export async function getIngredientsByCategory(
@@ -34,5 +40,5 @@ export async function getIngredientsByCategory(
     where('category', '==', category),
   )
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as CanonicalIngredient)
+  return snapshot.docs.map(docToIngredient)
 }

@@ -45,7 +45,7 @@ const proteins: CanonicalIngredient[] = [
   },
   {
     id: 'salmon',
-    names: { es: 'Salmon', en: 'Salmon' },
+    names: { es: 'Salmón', en: 'Salmon' },
     category: 'Protein',
     defaultUnit: 'kg',
     shelfLifeDays: 2,
@@ -85,7 +85,7 @@ const proteins: CanonicalIngredient[] = [
   },
   {
     id: 'canned_tuna',
-    names: { es: 'Atun en conserva', en: 'Canned tuna' },
+    names: { es: 'Atún en conserva', en: 'Canned tuna' },
     category: 'Protein',
     defaultUnit: 'g',
     shelfLifeDays: 730,
@@ -162,7 +162,7 @@ const vegetables: CanonicalIngredient[] = [
   },
   {
     id: 'mushrooms',
-    names: { es: 'Champinones', en: 'Mushrooms' },
+    names: { es: 'Champiñones', en: 'Mushrooms' },
     category: 'Vegetable',
     defaultUnit: 'g',
     shelfLifeDays: 7,
@@ -218,7 +218,7 @@ const vegetables: CanonicalIngredient[] = [
   },
   {
     id: 'broccoli',
-    names: { es: 'Brocoli', en: 'Broccoli' },
+    names: { es: 'Brócoli', en: 'Broccoli' },
     category: 'Vegetable',
     defaultUnit: 'g',
     shelfLifeDays: 7,
@@ -247,7 +247,7 @@ const fruits: CanonicalIngredient[] = [
   },
   {
     id: 'lemon',
-    names: { es: 'Limon', en: 'Lemon' },
+    names: { es: 'Limón', en: 'Lemon' },
     category: 'Fruit',
     defaultUnit: 'units',
     shelfLifeDays: 14,
@@ -263,7 +263,7 @@ const fruits: CanonicalIngredient[] = [
   },
   {
     id: 'banana',
-    names: { es: 'Platano', en: 'Banana' },
+    names: { es: 'Plátano', en: 'Banana' },
     category: 'Fruit',
     defaultUnit: 'units',
     shelfLifeDays: 5,
@@ -376,14 +376,6 @@ const dairy: CanonicalIngredient[] = [
     substitutions: [],
   },
   {
-    id: 'coconut_milk',
-    names: { es: 'Leche de coco', en: 'Coconut milk' },
-    category: 'Dairy',
-    defaultUnit: 'mL',
-    shelfLifeDays: 365,
-    substitutions: ['milk', 'cream'],
-  },
-  {
     id: 'butter',
     names: { es: 'Mantequilla', en: 'Butter' },
     category: 'Dairy',
@@ -438,19 +430,11 @@ const spices: CanonicalIngredient[] = [
   },
   {
     id: 'paprika',
-    names: { es: 'Pimenton', en: 'Paprika' },
+    names: { es: 'Pimentón', en: 'Paprika' },
     category: 'Spice',
     defaultUnit: 'g',
     shelfLifeDays: 365,
     substitutions: ['chili_flakes'],
-  },
-  {
-    id: 'oregano',
-    names: { es: 'Oregano', en: 'Oregano' },
-    category: 'Spice',
-    defaultUnit: 'g',
-    shelfLifeDays: 365,
-    substitutions: ['thyme', 'basil'],
   },
   {
     id: 'black_pepper',
@@ -470,7 +454,7 @@ const spices: CanonicalIngredient[] = [
   },
   {
     id: 'chili_flakes',
-    names: { es: 'Aji en hojuelas', en: 'Chili flakes' },
+    names: { es: 'Ají en hojuelas', en: 'Chili flakes' },
     category: 'Spice',
     defaultUnit: 'g',
     shelfLifeDays: 365,
@@ -512,6 +496,14 @@ const herbs: CanonicalIngredient[] = [
     defaultUnit: 'units',
     shelfLifeDays: 10,
     substitutions: ['oregano'],
+  },
+  {
+    id: 'oregano',
+    names: { es: 'Orégano', en: 'Oregano' },
+    category: 'Herb',
+    defaultUnit: 'g',
+    shelfLifeDays: 365,
+    substitutions: ['thyme', 'basil'],
   },
 ]
 
@@ -581,6 +573,30 @@ const condiments: CanonicalIngredient[] = [
     defaultUnit: 'L',
     shelfLifeDays: 365,
     substitutions: ['olive_oil'],
+  },
+  {
+    id: 'coconut_milk',
+    names: { es: 'Leche de coco', en: 'Coconut milk' },
+    category: 'Condiment',
+    defaultUnit: 'mL',
+    shelfLifeDays: 365,
+    substitutions: ['milk', 'cream'],
+  },
+  {
+    id: 'salt',
+    names: { es: 'Sal', en: 'Salt' },
+    category: 'Condiment',
+    defaultUnit: 'g',
+    shelfLifeDays: 3650,
+    substitutions: [],
+  },
+  {
+    id: 'sugar',
+    names: { es: 'Azúcar', en: 'Sugar' },
+    category: 'Condiment',
+    defaultUnit: 'g',
+    shelfLifeDays: 730,
+    substitutions: ['honey'],
   },
 ]
 

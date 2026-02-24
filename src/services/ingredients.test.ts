@@ -31,10 +31,28 @@ beforeEach(() => {
 })
 
 describe('getCanonicalIngredients', () => {
-  it('returns all ingredients from Firestore', async () => {
+  it('returns all ingredients from Firestore with full shape', async () => {
     const mockDocs = [
-      { id: 'tomato', data: () => ({ names: { es: 'Tomate', en: 'Tomato' }, category: 'Vegetable' }) },
-      { id: 'rice', data: () => ({ names: { es: 'Arroz', en: 'Rice' }, category: 'Grain' }) },
+      {
+        id: 'tomato',
+        data: () => ({
+          names: { es: 'Tomate', en: 'Tomato' },
+          category: 'Vegetable',
+          defaultUnit: 'kg',
+          shelfLifeDays: 7,
+          substitutions: ['bell_pepper'],
+        }),
+      },
+      {
+        id: 'rice',
+        data: () => ({
+          names: { es: 'Arroz', en: 'Rice' },
+          category: 'Grain',
+          defaultUnit: 'kg',
+          shelfLifeDays: 365,
+          substitutions: ['quinoa', 'pasta'],
+        }),
+      },
     ]
     mockCollection.mockReturnValue('collection-ref')
     mockGetDocs.mockResolvedValue({ docs: mockDocs })
@@ -44,8 +62,22 @@ describe('getCanonicalIngredients', () => {
     expect(mockCollection).toHaveBeenCalledWith({}, 'canonicalIngredients')
     expect(mockGetDocs).toHaveBeenCalledWith('collection-ref')
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ id: 'tomato', names: { es: 'Tomate', en: 'Tomato' }, category: 'Vegetable' })
-    expect(result[1]).toEqual({ id: 'rice', names: { es: 'Arroz', en: 'Rice' }, category: 'Grain' })
+    expect(result[0]).toEqual({
+      id: 'tomato',
+      names: { es: 'Tomate', en: 'Tomato' },
+      category: 'Vegetable',
+      defaultUnit: 'kg',
+      shelfLifeDays: 7,
+      substitutions: ['bell_pepper'],
+    })
+    expect(result[1]).toEqual({
+      id: 'rice',
+      names: { es: 'Arroz', en: 'Rice' },
+      category: 'Grain',
+      defaultUnit: 'kg',
+      shelfLifeDays: 365,
+      substitutions: ['quinoa', 'pasta'],
+    })
   })
 
   it('returns empty array when no ingredients exist', async () => {
@@ -71,14 +103,40 @@ describe('getCanonicalIngredient', () => {
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       id: 'tomato',
-      data: () => ({ names: { es: 'Tomate', en: 'Tomato' }, category: 'Vegetable' }),
+      data: () => ({
+        names: { es: 'Tomate', en: 'Tomato' },
+        category: 'Vegetable',
+        defaultUnit: 'kg',
+        shelfLifeDays: 7,
+        substitutions: ['bell_pepper'],
+      }),
     })
 
     const result = await getCanonicalIngredient('tomato')
 
     expect(mockDoc).toHaveBeenCalledWith({}, 'canonicalIngredients', 'tomato')
     expect(mockGetDoc).toHaveBeenCalledWith('doc-ref')
-    expect(result).toEqual({ id: 'tomato', names: { es: 'Tomate', en: 'Tomato' }, category: 'Vegetable' })
+    expect(result).toEqual({
+      id: 'tomato',
+      names: { es: 'Tomate', en: 'Tomato' },
+      category: 'Vegetable',
+      defaultUnit: 'kg',
+      shelfLifeDays: 7,
+      substitutions: ['bell_pepper'],
+    })
+  })
+
+  it('uses document ID not data id field', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      id: 'tomato',
+      data: () => ({ id: 'wrong_id', names: { es: 'Tomate', en: 'Tomato' }, category: 'Vegetable' }),
+    })
+
+    const result = await getCanonicalIngredient('tomato')
+
+    expect(result!.id).toBe('tomato')
   })
 
   it('returns null when ingredient does not exist', async () => {
@@ -113,6 +171,7 @@ describe('getIngredientsByCategory', () => {
 
     const result = await getIngredientsByCategory('Herb')
 
+    expect(mockCollection).toHaveBeenCalledWith({}, 'canonicalIngredients')
     expect(mockWhere).toHaveBeenCalledWith('category', '==', 'Herb')
     expect(mockQuery).toHaveBeenCalledWith('collection-ref', 'where-clause')
     expect(mockGetDocs).toHaveBeenCalledWith('query-ref')
