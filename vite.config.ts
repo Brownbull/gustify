@@ -17,18 +17,8 @@ export default defineConfig({
         theme_color: '#4a7c59',
         background_color: '#f5f0e8',
         display: 'standalone',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
+        // Icons will be added when brand assets are ready (gustify_prd §9)
+        icons: [],
       },
     }),
   ],

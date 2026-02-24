@@ -77,7 +77,9 @@ function getFirestoreInstance(): Firestore {
         return getFirestore(app)
       }
 
-      console.warn('[Firebase] Firestore initialization issue, using default instance:', e)
+      if (import.meta.env.DEV) {
+        console.warn('[Firebase] Firestore initialization issue, using default instance:', e)
+      }
       return getFirestore(app)
     }
   }
@@ -117,7 +119,7 @@ function connectToEmulators(): void {
   if (!useEmulators) return
 
   try {
-    connectAuthEmulator(auth, 'http://localhost:9099')
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
     emulatorsConnected = true
 
     if (import.meta.env.DEV) {
