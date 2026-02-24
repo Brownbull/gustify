@@ -1,7 +1,7 @@
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
-import { TEST_USERS, type TestUser } from '../fixtures/test-users.js'
+import { TEST_USERS, TEST_USER_PASSWORD, type TestUser } from '../fixtures/test-users.js'
 import { createRequire } from 'module'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -25,6 +25,7 @@ async function seedUser(key: string, userData: TestUser) {
     console.log(`  Auth user ${userData.uid} already exists, updating...`)
     await adminAuth.updateUser(userData.uid, {
       email: userData.email,
+      password: TEST_USER_PASSWORD,
       displayName: userData.displayName,
       photoURL: userData.photoURL,
     })
@@ -34,6 +35,7 @@ async function seedUser(key: string, userData: TestUser) {
       await adminAuth.createUser({
         uid: userData.uid,
         email: userData.email,
+        password: TEST_USER_PASSWORD,
         displayName: userData.displayName,
         photoURL: userData.photoURL,
       })

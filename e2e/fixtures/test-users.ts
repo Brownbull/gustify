@@ -1,3 +1,5 @@
+export const TEST_USER_PASSWORD = 'gustify-staging-test-2026'
+
 export interface TestUser {
   uid: string
   email: string

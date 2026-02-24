@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/authStore'
 import { lazy, Suspense } from 'react'
 
-const DevTestUserMenu = import.meta.env.DEV
+const DevTestUserMenu = import.meta.env.MODE !== 'production'
   ? lazy(() => import('@/components/DevTestUserMenu'))
   : () => null
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {import.meta.env.DEV && (
+      {import.meta.env.MODE !== 'production' && (
         <Suspense>
           <DevTestUserMenu />
         </Suspense>

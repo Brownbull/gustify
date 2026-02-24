@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { signInWithCustomToken } from 'firebase/auth'
+import { signInWithCustomToken, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/config/firebase'
-import { DEV_TEST_USERS, type DevTestUserKey } from '@/config/test-users'
+import { DEV_TEST_USERS, TEST_USER_PASSWORD, type DevTestUserKey } from '@/config/test-users'
 
 const TIER_COLORS: Record<string, string> = {
   Principiante: 'bg-green-100 text-green-800',
@@ -19,15 +19,22 @@ export default function DevTestUserMenu() {
     setLoading(userKey)
     setError(null)
 
-    try {
-      const res = await fetch(`/__dev/auth-token/${userKey}`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({ error: res.statusText }))
-        throw new Error(body.error || `HTTP ${res.status}`)
-      }
+    const user = DEV_TEST_USERS.find((u) => u.key === userKey)!
 
-      const { token } = await res.json()
-      await signInWithCustomToken(auth, token)
+    try {
+      if (import.meta.env.DEV) {
+        // Local dev server: use custom token via Vite middleware
+        const res = await fetch(`/__dev/auth-token/${userKey}`)
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: res.statusText }))
+          throw new Error(body.error || `HTTP ${res.status}`)
+        }
+        const { token } = await res.json()
+        await signInWithCustomToken(auth, token)
+      } else {
+        // Staging hosted: use email/password
+        await signInWithEmailAndPassword(auth, user.email, TEST_USER_PASSWORD)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
