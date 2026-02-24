@@ -24,10 +24,11 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { signIn, error } = useAuthStore()
+  const signIn = useAuthStore((s) => s.signIn)
+  const error = useAuthStore((s) => s.error)
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-surface px-6">
       <div className="w-full max-w-sm text-center">
         <h1 className="font-serif text-5xl font-bold text-primary">
           Gustify

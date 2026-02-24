@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-let mockAuthState = { user: null as any, loading: true, error: null, signIn: vi.fn(), signOut: vi.fn() }
+let mockState: Record<string, unknown> = { user: null, loading: true }
 
 vi.mock('@/stores/authStore', () => ({
-  useAuthStore: () => mockAuthState,
+  useAuthStore: (selector: (s: Record<string, unknown>) => unknown) =>
+    selector(mockState),
 }))
 
 vi.mock('@/pages/LoginPage', () => ({
@@ -14,12 +15,12 @@ vi.mock('@/pages/LoginPage', () => ({
 import ProtectedRoute from './ProtectedRoute'
 
 beforeEach(() => {
-  mockAuthState = { user: null, loading: true, error: null, signIn: vi.fn(), signOut: vi.fn() }
+  mockState = { user: null, loading: true }
 })
 
 describe('ProtectedRoute', () => {
   it('shows loading spinner when auth is loading', () => {
-    mockAuthState.loading = true
+    mockState = { user: null, loading: true }
 
     render(<ProtectedRoute><div>Content</div></ProtectedRoute>)
 
@@ -28,8 +29,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('shows login page when not authenticated', () => {
-    mockAuthState.loading = false
-    mockAuthState.user = null
+    mockState = { user: null, loading: false }
 
     render(<ProtectedRoute><div>Content</div></ProtectedRoute>)
 
@@ -38,8 +38,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('renders children when authenticated', () => {
-    mockAuthState.loading = false
-    mockAuthState.user = { uid: '123', displayName: 'Test' }
+    mockState = { user: { uid: '123', displayName: 'Test' }, loading: false }
 
     render(<ProtectedRoute><div>Content</div></ProtectedRoute>)
 

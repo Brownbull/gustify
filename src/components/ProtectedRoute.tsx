@@ -3,11 +3,12 @@ import { useAuthStore } from '@/stores/authStore'
 import LoginPage from '@/pages/LoginPage'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const loading = useAuthStore((s) => s.loading)
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface">
+      <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )

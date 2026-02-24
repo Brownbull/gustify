@@ -49,6 +49,14 @@ describe('signInWithGoogle', () => {
   })
 })
 
+describe('signInWithGoogle', () => {
+  it('propagates error when popup fails', async () => {
+    mockSignInWithPopup.mockRejectedValue(new Error('auth/popup-blocked'))
+
+    await expect(signInWithGoogle()).rejects.toThrow('auth/popup-blocked')
+  })
+})
+
 describe('signOutUser', () => {
   it('calls signOut', async () => {
     mockSignOut.mockResolvedValue(undefined)
@@ -56,6 +64,12 @@ describe('signOutUser', () => {
     await signOutUser()
 
     expect(mockSignOut).toHaveBeenCalledOnce()
+  })
+
+  it('propagates error when sign-out fails', async () => {
+    mockSignOut.mockRejectedValue(new Error('network-error'))
+
+    await expect(signOutUser()).rejects.toThrow('network-error')
   })
 })
 
@@ -99,6 +113,39 @@ describe('ensureUserProfile', () => {
         locale: 'es',
         currency: 'CLP',
         theme: 'light',
+      }),
+    }))
+  })
+
+  it('propagates error when getDoc fails', async () => {
+    mockDoc.mockReturnValue('user-ref')
+    mockGetDoc.mockRejectedValue(new Error('firestore-unavailable'))
+
+    await expect(ensureUserProfile(mockUser as any)).rejects.toThrow('firestore-unavailable')
+  })
+
+  it('propagates error when setDoc fails', async () => {
+    mockDoc.mockReturnValue('user-ref')
+    mockGetDoc.mockResolvedValue({ exists: () => false })
+    mockSetDoc.mockRejectedValue(new Error('permission-denied'))
+
+    await expect(ensureUserProfile(mockUser as any)).rejects.toThrow('permission-denied')
+  })
+
+  it('initializes all cooking profile arrays as empty', async () => {
+    mockDoc.mockReturnValue('user-ref')
+    mockGetDoc.mockResolvedValue({ exists: () => false })
+    mockSetDoc.mockResolvedValue(undefined)
+
+    await ensureUserProfile(mockUser as any)
+
+    expect(mockSetDoc).toHaveBeenCalledWith('user-ref', expect.objectContaining({
+      cookingProfile: expect.objectContaining({
+        dietPrefs: [],
+        allergies: [],
+        cookedCuisines: [],
+        cookedTechniques: [],
+        cookedIngredients: [],
       }),
     }))
   })

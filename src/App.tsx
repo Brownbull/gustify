@@ -2,7 +2,8 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuthStore } from '@/stores/authStore'
 
 function UserHeader() {
-  const { user, signOut } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
   if (!user) return null
 
   return (

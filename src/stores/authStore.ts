@@ -13,19 +13,25 @@ interface AuthState {
   error: string | null
   signIn: () => Promise<void>
   signOut: () => Promise<void>
+  _unsubscribe: (() => void) | null
 }
 
+const ensuredUids = new Set<string>()
+
 export const useAuthStore = create<AuthState>((set) => {
-  subscribeToAuth(async (user) => {
+  const unsubscribe = subscribeToAuth((user) => {
     if (user) {
-      try {
-        await ensureUserProfile(user)
-      } catch (e) {
-        if (import.meta.env.DEV) {
-          console.warn('[Auth] Failed to ensure user profile:', e)
-        }
-      }
       set({ user, loading: false, error: null })
+
+      if (!ensuredUids.has(user.uid)) {
+        ensuredUids.add(user.uid)
+        ensureUserProfile(user).catch((e) => {
+          ensuredUids.delete(user.uid)
+          if (import.meta.env.DEV) {
+            console.warn('[Auth] Failed to ensure user profile:', e)
+          }
+        })
+      }
     } else {
       set({ user: null, loading: false, error: null })
     }
@@ -35,6 +41,7 @@ export const useAuthStore = create<AuthState>((set) => {
     user: null,
     loading: true,
     error: null,
+    _unsubscribe: unsubscribe,
 
     signIn: async () => {
       set({ error: null })
@@ -47,6 +54,7 @@ export const useAuthStore = create<AuthState>((set) => {
     },
 
     signOut: async () => {
+      set({ error: null })
       try {
         await signOutUser()
       } catch (e) {

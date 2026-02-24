@@ -3,20 +3,18 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 const mockSignIn = vi.fn()
-let mockError: string | null = null
+let mockState: Record<string, unknown> = {}
 
 vi.mock('@/stores/authStore', () => ({
-  useAuthStore: () => ({
-    signIn: mockSignIn,
-    error: mockError,
-  }),
+  useAuthStore: (selector: (s: Record<string, unknown>) => unknown) =>
+    selector(mockState),
 }))
 
 import LoginPage from './LoginPage'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockError = null
+  mockState = { signIn: mockSignIn, error: null }
 })
 
 describe('LoginPage', () => {
@@ -38,15 +36,16 @@ describe('LoginPage', () => {
   })
 
   it('shows error message when error is present', () => {
-    mockError = 'auth/popup-closed-by-user'
+    mockState = { signIn: mockSignIn, error: 'auth/popup-closed-by-user' }
 
     render(<LoginPage />)
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudo iniciar sesión. Intenta de nuevo.')
   })
 
   it('does not show error message when there is no error', () => {
-    mockError = null
+    mockState = { signIn: mockSignIn, error: null }
 
     render(<LoginPage />)
 
