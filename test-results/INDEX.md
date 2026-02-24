@@ -12,6 +12,7 @@ Playwright auto-artifacts (traces, failure screenshots, videos) live separately 
 | `auth-login/` | `e2e/tests/auth/login.spec.ts` | Login page branding, custom-token auth, avatar display |
 | `auth-logout/` | `e2e/tests/auth/logout.spec.ts` | Sign-out flow — authenticated state → login page |
 | `auth-protected-routes/` | `e2e/tests/auth/protected-route.spec.ts` | Route protection, unauthenticated redirect, all 4 tier logins |
+| `auth-dev-test-user-menu/` | `e2e/tests/auth/dev-test-user-menu.spec.ts` | Dev menu chip, expand, login as each of 4 test users |
 
 ## Future Critical Paths
 

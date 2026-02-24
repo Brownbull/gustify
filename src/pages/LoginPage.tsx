@@ -1,4 +1,9 @@
 import { useAuthStore } from '@/stores/authStore'
+import { lazy, Suspense } from 'react'
+
+const DevTestUserMenu = import.meta.env.DEV
+  ? lazy(() => import('@/components/DevTestUserMenu'))
+  : () => null
 
 function GoogleIcon() {
   return (
@@ -58,6 +63,12 @@ export default function LoginPage() {
           Khujta AI
         </p>
       </div>
+
+      {import.meta.env.DEV && (
+        <Suspense>
+          <DevTestUserMenu />
+        </Suspense>
+      )}
     </div>
   )
 }
