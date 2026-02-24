@@ -33,7 +33,7 @@ export default function LoginPage() {
           Gustify
         </h1>
         <p className="mt-2 text-lg text-primary-dark/70">
-          Tu companero de cocina
+          Tu compañero de cocina
         </p>
 
         <div className="mt-12">
@@ -43,13 +43,13 @@ export default function LoginPage() {
             className="flex w-full items-center justify-center gap-3 rounded-lg border border-primary/20 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:bg-gray-100"
           >
             <GoogleIcon />
-            Iniciar sesion con Google
+            Iniciar sesión con Google
           </button>
         </div>
 
         {error && (
           <p className="mt-4 text-sm text-red-600" role="alert">
-            No se pudo iniciar sesion. Intenta de nuevo.
+            No se pudo iniciar sesión. Intenta de nuevo.
           </p>
         )}
 

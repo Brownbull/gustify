@@ -39,7 +39,7 @@ function App() {
       <div className="min-h-dvh bg-surface flex flex-col">
         <UserHeader />
         <main className="flex flex-1 flex-col items-center justify-center p-4">
-          <p className="text-lg text-primary-dark">Tu companero de cocina</p>
+          <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
         </main>
       </div>
     </ProtectedRoute>
