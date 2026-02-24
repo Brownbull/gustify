@@ -13,11 +13,13 @@ It integrates with **Gastify** (sister expense-tracking app) to auto-populate pa
 
 ## Current Phase
 
-**Phase 1 — MVP** (pre-development as of 2026-02-24)
+**Phase 1 — MVP** (in development as of 2026-02-24)
 
-The codebase does not exist yet. Only planning artifacts are present:
+The project foundation has been scaffolded. Planning artifacts are present alongside the initial codebase:
 - `docs/scope/gustify_prd_20260224.md` — full PRD (single source of truth)
 - `docs/mockups/v0/gustify_v0.jsx` — React prototype (reference only, not production code)
+
+**Issue #1 (Firebase setup) is complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project.
 
 ---
 
@@ -99,6 +101,35 @@ cookedIngredients: string[]  // canonicalIds of ingredients used
 
 ---
 
+## Development Setup
+
+### Prerequisites
+- Node.js 20+
+- Firebase CLI (`npm install -g firebase-tools`)
+- Copy `.env.example` to `.env` and fill in values from Firebase Console > Project Settings > Web app (boletapp-d609f)
+
+### Running locally
+
+```bash
+# Terminal 1 — Firebase emulators (Auth + Firestore)
+npm run emulators          # uses demo-gustify project, ports: Auth 9099, Firestore 8080, UI 4000
+
+# Terminal 2 — Vite dev server
+npm run dev                # http://localhost:5173
+```
+
+`VITE_E2E_MODE=emulator` in `.env` forces emulator use in dev mode (default when `import.meta.env.DEV` is true).
+
+### Important: Firestore rules
+`firestore.rules` is for **emulator use only** and covers Gustify paths only. It **must not be deployed** to the shared `boletapp-d609f` project — doing so would overwrite Gastify's production rules. A unified rules file must be coordinated with the Gastify project before any production deployment.
+
+### Deploying
+```bash
+npm run deploy             # builds and deploys to Firebase Hosting target "gustify"
+```
+
+---
+
 ## Development Conventions
 
 - **Spanish-first:** All UI labels, copy, and user-facing strings in Spanish. Code/variables in English.
@@ -118,6 +149,14 @@ cookedIngredients: string[]  // canonicalIds of ingredients used
 | `docs/scope/gustify_prd_20260224.md` | Full PRD — requirements, schema, roadmap |
 | `docs/mockups/v0/gustify_v0.jsx` | UI reference prototype (React, not production) |
 | `CLAUDE.md` | This file — project memory for AI tools |
+| `src/config/firebase.ts` | Firebase app, Auth, and Firestore initialization; emulator detection via `VITE_E2E_MODE` |
+| `src/lib/queryClient.ts` | TanStack Query client with default stale-time and retry config |
+| `src/main.tsx` | App entry point — initializes Firebase before React mounts |
+| `src/App.tsx` | Root component (placeholder until feature views are added) |
+| `firebase.json` | Firebase Hosting config + emulator ports (Auth:9099, Firestore:8080, UI:4000) |
+| `.firebaserc` | Firebase project alias — `default` maps to `boletapp-d609f` |
+| `firestore.rules` | Firestore security rules — EMULATOR ONLY, do not deploy to production |
+| `.env.example` | Required `VITE_FIREBASE_*` env vars template |
 
 ---
 
