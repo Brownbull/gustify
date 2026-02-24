@@ -77,15 +77,14 @@ function getFirestoreInstance(): Firestore {
         return getFirestore(app)
       }
 
-      if (import.meta.env.DEV) {
-        console.warn('[Firebase] Firestore initialization issue, using default instance:', e)
-      }
+      console.warn('[Firebase] Firestore initialization issue, using default instance:', e)
       return getFirestore(app)
     }
   }
 
   // Emulator mode: configure both long polling AND emulator host in one call
   // to avoid connectFirestoreEmulator overriding the settings
+  // IMPORTANT: ports must match firebase.json emulator config (Firestore:8080, Auth:9099)
   try {
     return initializeFirestore(app, {
       experimentalForceLongPolling: true,

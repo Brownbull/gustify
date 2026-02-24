@@ -9,6 +9,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
 
       match /pantry/{ingredientId} {
         allow read: if request.auth != null && request.auth.uid == userId;
@@ -16,7 +17,7 @@ service cloud.firestore {
       }
       match /cookedMeals/{mealId} {
         allow read: if request.auth != null && request.auth.uid == userId;
-        allow create, update: if request.auth != null && request.auth.uid == userId;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
       match /shoppingList/{listId} {
         allow read: if request.auth != null && request.auth.uid == userId;
