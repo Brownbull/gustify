@@ -1,8 +1,4 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
   "hosting": {
     "target": "gustify",
     "public": "dist",
@@ -31,11 +27,11 @@
   },
   "emulators": {
     "auth": {
-      "host": "0.0.0.0",
+      "host": "127.0.0.1",
       "port": 9099
     },
     "firestore": {
-      "host": "0.0.0.0",
+      "host": "127.0.0.1",
       "port": 8080
     },
     "ui": {

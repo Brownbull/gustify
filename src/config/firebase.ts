@@ -39,45 +39,38 @@ const firebaseConfig = {
 
 export const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig)
 
-const shouldUseEmulators = (): boolean => {
-  const e2eMode = import.meta.env.VITE_E2E_MODE || 'emulator'
+// Compute once at module level — depends only on static env vars
+const useEmulators = (() => {
+  const e2eMode = import.meta.env.VITE_E2E_MODE
+  if (e2eMode === 'emulator') return true
   if (e2eMode === 'production') return false
-  const isDev = import.meta.env.DEV ||
-    (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-  return isDev
-}
+  // Default: use emulators in dev, production otherwise
+  return import.meta.env.DEV
+})()
 
 export const auth: Auth = getAuth(app)
 
-// Initialize Firestore with special handling for emulator mode
 // Firebase SDK v12+ has issues where connectFirestoreEmulator overrides experimentalForceLongPolling
-// So we configure the emulator connection INSIDE initializeFirestore settings
+// so we configure the emulator connection INSIDE initializeFirestore settings
 function getFirestoreInstance(): Firestore {
-  const useEmulators = shouldUseEmulators()
-
   if (!useEmulators) {
-    // Production mode: Enable offline persistence with multi-tab support
     try {
-      const firestoreInstance = initializeFirestore(app, {
+      return initializeFirestore(app, {
         localCache: persistentLocalCache({
           tabManager: persistentMultipleTabManager(),
         }),
       })
-      if (import.meta.env.DEV) {
-        console.log('[Firebase] Production mode - Firestore with offline persistence enabled')
-      }
-      return firestoreInstance
     } catch (e) {
-      const error = e as Error
+      const message = e instanceof Error ? e.message : String(e)
 
-      if (error.message?.includes('failed-precondition')) {
+      if (message.includes('failed-precondition')) {
         if (import.meta.env.DEV) {
           console.warn('[Firebase] Multiple tabs detected, using shared instance')
         }
         return getFirestore(app)
       }
 
-      if (error.message?.includes('unimplemented')) {
+      if (message.includes('unimplemented')) {
         if (import.meta.env.DEV) {
           console.warn('[Firebase] IndexedDB not supported, falling back to memory-only cache')
         }
@@ -85,27 +78,22 @@ function getFirestoreInstance(): Firestore {
       }
 
       if (import.meta.env.DEV) {
-        console.warn('[Firebase] Firestore initialization issue, using default instance:', error)
+        console.warn('[Firebase] Firestore initialization issue, using default instance:', e)
       }
       return getFirestore(app)
     }
   }
 
   // Emulator mode: configure both long polling AND emulator host in one call
-  // This ensures the settings are not overridden by connectFirestoreEmulator
+  // to avoid connectFirestoreEmulator overriding the settings
   try {
-    const firestoreInstance = initializeFirestore(app, {
+    return initializeFirestore(app, {
       experimentalForceLongPolling: true,
       experimentalAutoDetectLongPolling: false,
       host: 'localhost:8080',
       ssl: false,
     })
-    if (import.meta.env.DEV) {
-      console.log('[Firebase] Initialized Firestore with LONG POLLING + emulator (localhost:8080)')
-    }
-    return firestoreInstance
   } catch (e) {
-    // If Firestore is already initialized (e.g., during HMR), use existing instance
     if (import.meta.env.DEV) {
       console.warn('[Firebase] Firestore already initialized, falling back to existing instance', e)
     }
@@ -119,32 +107,18 @@ let emulatorsConnected = false
 
 /**
  * Connect to Firebase emulators in development mode.
- * Called automatically on module load in dev mode.
- * Safe to call multiple times - uses flag to prevent double-connection.
+ * Called automatically on module load when useEmulators is true.
+ * Safe to call multiple times — uses flag to prevent double-connection.
  *
  * NOTE: Firestore emulator is configured directly in initializeFirestore
  * to preserve the experimentalForceLongPolling setting (CORS fix).
  */
 function connectToEmulators(): void {
   if (emulatorsConnected) return
-
-  const e2eMode = import.meta.env.VITE_E2E_MODE || 'emulator'
-  if (e2eMode === 'production') {
-    if (import.meta.env.DEV) {
-      console.log('[Firebase] Production E2E mode - skipping emulators')
-    }
-    return
-  }
-
-  const isDev = import.meta.env.DEV ||
-    (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-
-  if (!isDev) return
+  if (!useEmulators) return
 
   try {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
-    // NOTE: Firestore emulator is configured in initializeFirestore (with long polling)
-    // Do NOT call connectFirestoreEmulator here as it would override the settings
+    connectAuthEmulator(auth, 'http://localhost:9099')
     emulatorsConnected = true
 
     if (import.meta.env.DEV) {

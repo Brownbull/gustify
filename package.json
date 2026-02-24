@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "emulators": "firebase emulators:start --only auth,firestore --project boletapp-d609f",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-gustify",
     "deploy": "npm run build && firebase deploy --only hosting:gustify"
   },
   "dependencies": {

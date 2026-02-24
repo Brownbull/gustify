@@ -2,33 +2,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // WARNING: These rules cover Gustify paths only.
-    // Deploying these will OVERWRITE Gastify's rules.
+    // DO NOT deploy to production — this will OVERWRITE Gastify's rules.
     // For Phase 1, use with emulators only.
+    // A shared rules file must be established before production deploy.
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
 
       match /pantry/{ingredientId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
       match /cookedMeals/{mealId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create, update: if request.auth != null && request.auth.uid == userId;
       }
       match /shoppingList/{listId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     match /canonicalIngredients/{id} {
       allow read: if request.auth != null;
+      allow write: if false;
     }
 
     match /itemMappings/{hash} {
       allow read: if request.auth != null;
+      allow write: if false;
     }
 
     match /recipes/{recipeId} {
       allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Catch-all deny for unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
