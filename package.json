@@ -10,24 +10,32 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "emulators": "firebase emulators:start --only auth,firestore --project demo-gustify",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "deploy": "npm run build && firebase deploy --only hosting:gustify"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
     "firebase": "^12.8.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.0",
+    "jsdom": "^28.1.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3",
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^1.2.0",
-    "vite-tsconfig-paths": "^6.0.5"
+    "vite-tsconfig-paths": "^6.0.5",
+    "vitest": "^4.0.18"
   }
 }

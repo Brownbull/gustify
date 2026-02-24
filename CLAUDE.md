@@ -19,7 +19,7 @@ The project foundation has been scaffolded. Planning artifacts are present along
 - `docs/scope/gustify_prd_20260224.md` — full PRD (single source of truth)
 - `docs/mockups/v0/gustify_v0.jsx` — React prototype (reference only, not production code)
 
-**Issue #1 (Firebase setup) is complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project.
+**Issues #1 and #2 are complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project. Firebase Auth with Google OAuth is implemented: sign-in/sign-out, automatic Firestore user profile creation, a Zustand auth store, `LoginPage`, and `ProtectedRoute` are all wired up with 27 Vitest tests.
 
 ---
 
@@ -153,6 +153,12 @@ npm run deploy             # builds and deploys to Firebase Hosting target "gust
 | `src/lib/queryClient.ts` | TanStack Query client with default stale-time and retry config |
 | `src/main.tsx` | App entry point — initializes Firebase before React mounts |
 | `src/App.tsx` | Root component (placeholder until feature views are added) |
+| `src/types/user.ts` | TypeScript interfaces: `UserProfile`, `CookingProfile`, `UserSettings`, `UserDocument`, `ProficiencyTier` |
+| `src/services/auth.ts` | Auth service — `signInWithGoogle`, `signOutUser`, `ensureUserProfile`, `subscribeToAuth` |
+| `src/stores/authStore.ts` | Zustand auth store — `useAuthStore` (user, loading, error, signIn, signOut) |
+| `src/components/ProtectedRoute.tsx` | Route guard — shows `LoginPage` when unauthenticated, spinner while loading |
+| `src/pages/LoginPage.tsx` | Google OAuth sign-in page (Spanish UI) |
+| `src/test/setup.ts` | Vitest global test setup — registers `@testing-library/jest-dom` matchers |
 | `firebase.json` | Firebase Hosting config + emulator ports (Auth:9099, Firestore:8080, UI:4000) |
 | `.firebaserc` | Firebase project alias — `default` maps to `boletapp-d609f` |
 | `firestore.rules` | Firestore security rules — EMULATOR ONLY, do not deploy to production |
