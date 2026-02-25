@@ -32,6 +32,12 @@ service cloud.firestore {
 
     match /itemMappings/{hash} {
       allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    match /artifacts/{appId}/users/{userId}/transactions/{txId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if false;
     }
 

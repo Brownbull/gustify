@@ -19,7 +19,7 @@ The project foundation has been scaffolded. Planning artifacts are present along
 - `docs/scope/gustify_prd_20260224.md` — full PRD (single source of truth)
 - `docs/mockups/v0/gustify_v0.jsx` — React prototype (reference only, not production code)
 
-**Issues #1, #2, and #3 are complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project. Firebase Auth with Google OAuth is implemented: sign-in/sign-out, automatic Firestore user profile creation, a Zustand auth store, `LoginPage`, and `ProtectedRoute` are all wired up with 37 Vitest tests. The canonical ingredients dictionary (70 ingredients, Chilean Spanish) is seeded to Firestore with a client-side query service.
+**Issues #1, #2, #3, and #4 are complete.** The Vite + React 18 + TypeScript + Tailwind CSS scaffold is in place with Firebase configured against the shared `boletapp-d609f` project. Local development uses the `demo-gustify` emulator project. Firebase Auth with Google OAuth is implemented: sign-in/sign-out, automatic Firestore user profile creation, a Zustand auth store, `LoginPage`, and `ProtectedRoute` are all wired up. The canonical ingredients dictionary (70 ingredients, Chilean Spanish) is seeded to Firestore with a client-side query service. Item mapping maps Gastify transaction items to canonical ingredients via a manual picker UI, with auto-resolution for previously mapped items and pantry population.
 
 ---
 
@@ -204,16 +204,25 @@ npm run seed:ingredients    # seed 70 canonical ingredients to staging Firestore
 | `src/config/firebase.ts` | Firebase app, Auth, and Firestore initialization |
 | `src/lib/queryClient.ts` | TanStack Query client with default stale-time and retry config |
 | `src/main.tsx` | App entry point — initializes Firebase before React mounts |
-| `src/App.tsx` | Root component (placeholder until feature views are added) |
+| `src/App.tsx` | Root component with bottom navigation (Inicio/Mapear tabs) |
 | `src/types/user.ts` | TypeScript interfaces: `UserProfile`, `CookingProfile`, `UserSettings`, `UserDocument`, `ProficiencyTier` |
 | `src/types/ingredient.ts` | TypeScript interfaces: `CanonicalIngredient`, `IngredientCategory` |
+| `src/types/gastify.ts` | TypeScript interfaces: `GastifyTransaction`, `GastifyTransactionItem` |
+| `src/types/item-mapping.ts` | TypeScript interfaces: `ItemMapping`, `CookingCategory`, `normalizeItemName`, `COOKING_CATEGORIES` |
+| `src/types/pantry.ts` | TypeScript interface: `PantryItem` |
 | `src/services/auth.ts` | Auth service — `signInWithGoogle`, `signOutUser`, `ensureUserProfile`, `subscribeToAuth` |
 | `src/services/ingredients.ts` | Ingredient service — `getCanonicalIngredients`, `getCanonicalIngredient`, `getIngredientsByCategory` |
+| `src/services/gastify-transactions.ts` | Gastify service — `getUserTransactions`, `extractCookingItems`, `getUnmappedItems` |
+| `src/services/item-mappings.ts` | Item mappings service — `getAllMappings`, `getMapping`, `createMapping` |
+| `src/services/pantry.ts` | Pantry service — `addToPantry`, `getUserPantry`, `removePantryItem` |
 | `scripts/data/canonical-ingredients.ts` | 70 canonical ingredient seed data (Chilean Spanish) |
 | `scripts/seed-ingredients.ts` | Seed canonical ingredients to staging Firestore (idempotent) |
 | `src/stores/authStore.ts` | Zustand auth store — `useAuthStore` (user, loading, error, signIn, signOut) |
+| `src/stores/mappingStore.ts` | Zustand mapping store — `useMappingStore` (loadItems, mapItem, skipItem, auto-resolve) |
 | `src/components/ProtectedRoute.tsx` | Route guard — shows `LoginPage` when unauthenticated, spinner while loading |
+| `src/components/IngredientPicker.tsx` | Searchable canonical ingredient selector with category badges |
 | `src/pages/LoginPage.tsx` | Google OAuth sign-in page (Spanish UI) |
+| `src/pages/MapItemsPage.tsx` | Item mapping page — unmapped items list, inline picker, summary cards |
 | `src/test/setup.ts` | Vitest global test setup — registers `@testing-library/jest-dom` matchers |
 | `playwright.config.ts` | Playwright E2E config — staging env, mobile viewport, sequential workers |
 | `e2e/fixtures/test-users.ts` | 4 test user personas (Principiante → Avanzado) with Firestore docs |
