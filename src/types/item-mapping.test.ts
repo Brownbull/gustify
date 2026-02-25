@@ -30,12 +30,17 @@ describe('normalizeItemName', () => {
     expect(() => normalizeItemName('   ')).toThrow('Invalid item name')
   })
 
-  it('throws on names containing slashes', () => {
-    expect(() => normalizeItemName('milk/../users')).toThrow('Invalid item name')
+  it('replaces slashes with spaces', () => {
+    expect(normalizeItemName('milk/../users')).toBe('milk .. users')
   })
 
-  it('throws on names with forward slash', () => {
-    expect(() => normalizeItemName('a/b')).toThrow('Invalid item name')
+  it('replaces forward slash and collapses spaces', () => {
+    expect(normalizeItemName('a/b')).toBe('a b')
+  })
+
+  it('handles real grocery names with slashes', () => {
+    expect(normalizeItemName('Sal/Pimienta')).toBe('sal pimienta')
+    expect(normalizeItemName('1/2 Kg Pollo')).toBe('1 2 kg pollo')
   })
 
   it('handles single word without modification needed', () => {

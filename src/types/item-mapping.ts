@@ -48,12 +48,13 @@ export type CookingCategory = (typeof COOKING_CATEGORIES)[number]
 
 /**
  * Normalizes a raw grocery item name for consistent lookup.
- * Lowercases, trims whitespace, and collapses multiple spaces to one.
- * Throws on empty or path-traversal input (names containing '/').
+ * Lowercases, trims whitespace, collapses multiple spaces to one,
+ * and replaces '/' with ' ' (slashes are invalid in Firestore doc IDs).
+ * Throws on empty input.
  */
 export function normalizeItemName(name: string): string {
-  const normalized = name.toLowerCase().trim().replace(/\s+/g, ' ')
-  if (!normalized || normalized.includes('/')) {
+  const normalized = name.toLowerCase().trim().replace(/\//g, ' ').replace(/\s+/g, ' ')
+  if (!normalized) {
     throw new Error('Invalid item name')
   }
   return normalized

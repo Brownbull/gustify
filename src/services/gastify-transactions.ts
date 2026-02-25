@@ -61,6 +61,7 @@ export function extractCookingItems(
   for (const tx of transactions) {
     for (const item of tx.items) {
       if (!isCookingItem(item)) continue
+      if (!item.name?.trim()) continue
 
       const normalized = normalizeItemName(item.name)
       if (seen.has(normalized)) continue
