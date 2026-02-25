@@ -4,6 +4,7 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  onSnapshot,
   Timestamp,
   type QueryDocumentSnapshot,
   type DocumentData,
@@ -105,4 +106,25 @@ export async function removePantryItem(
   canonicalId: string,
 ): Promise<void> {
   await deleteDoc(doc(db, pantryPath(userId), canonicalId))
+}
+
+/**
+ * Subscribes to real-time updates of the user's pantry.
+ * Returns an unsubscribe function.
+ */
+export function subscribeToPantry(
+  userId: string,
+  callback: (items: PantryItem[]) => void,
+  onError?: (error: Error) => void,
+): () => void {
+  return onSnapshot(
+    collection(db, pantryPath(userId)),
+    (snapshot) => {
+      const items = snapshot.docs.map(docToPantryItem)
+      callback(items)
+    },
+    (error) => {
+      if (onError) onError(error)
+    },
+  )
 }

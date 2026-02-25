@@ -2,40 +2,13 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { CanonicalIngredient, IngredientCategory } from '@/types/ingredient'
 import { getCanonicalIngredients } from '@/services/ingredients'
+import { CATEGORY_COLORS, CATEGORY_META, CATEGORY_ORDER } from '@/lib/categories'
 
 interface IngredientPickerProps {
   onSelect: (ingredient: CanonicalIngredient) => void
   onSkip: () => void
   onMarkPrepared?: () => void
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Protein: 'bg-red-100 text-red-700',
-  Vegetable: 'bg-green-100 text-green-700',
-  Fruit: 'bg-yellow-100 text-yellow-700',
-  Grain: 'bg-amber-100 text-amber-700',
-  Dairy: 'bg-blue-100 text-blue-700',
-  Spice: 'bg-orange-100 text-orange-700',
-  Herb: 'bg-emerald-100 text-emerald-700',
-  Condiment: 'bg-purple-100 text-purple-700',
-  Other: 'bg-gray-100 text-gray-700',
-}
-
-const CATEGORY_META: Record<IngredientCategory, { label: string; icon: string }> = {
-  Protein: { label: 'Prote\u00ednas', icon: '\uD83E\uDD69' },
-  Vegetable: { label: 'Verduras', icon: '\uD83E\uDD6C' },
-  Fruit: { label: 'Frutas', icon: '\uD83C\uDF4E' },
-  Grain: { label: 'Cereales', icon: '\uD83C\uDF3E' },
-  Dairy: { label: 'L\u00e1cteos', icon: '\uD83E\uDD5B' },
-  Spice: { label: 'Especias', icon: '\uD83C\uDF36\uFE0F' },
-  Herb: { label: 'Hierbas', icon: '\uD83C\uDF3F' },
-  Condiment: { label: 'Condimentos', icon: '\uD83E\uDED2' },
-  Other: { label: 'Otros', icon: '\uD83D\uDCE6' },
-}
-
-const CATEGORY_ORDER: IngredientCategory[] = [
-  'Protein', 'Vegetable', 'Fruit', 'Grain', 'Dairy', 'Spice', 'Herb', 'Condiment', 'Other',
-]
 
 export default function IngredientPicker({
   onSelect,

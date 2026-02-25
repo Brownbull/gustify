@@ -2,8 +2,9 @@ import { useState } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuthStore } from '@/stores/authStore'
 import MapItemsPage from '@/pages/MapItemsPage'
+import PantryPage from '@/pages/PantryPage'
 
-type AppView = 'home' | 'mapItems'
+type AppView = 'home' | 'pantry' | 'mapItems'
 
 function UserHeader() {
   const user = useAuthStore((s) => s.user)
@@ -50,6 +51,8 @@ function App() {
             <div className="flex flex-1 flex-col items-center justify-center p-4">
               <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
             </div>
+          ) : view === 'pantry' ? (
+            <PantryPage onNavigateToMap={() => setView('mapItems')} />
           ) : (
             <MapItemsPage />
           )}
@@ -66,6 +69,17 @@ function App() {
               }`}
             >
               Inicio
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('pantry')}
+              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                view === 'pantry'
+                  ? 'text-primary'
+                  : 'text-primary-dark/40 hover:text-primary-dark/60'
+              }`}
+            >
+              Despensa
             </button>
             <button
               type="button"
