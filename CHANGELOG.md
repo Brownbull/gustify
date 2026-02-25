@@ -5,6 +5,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-02-24 — Item Mapping (#4)
+
+### Added
+- `src/types/gastify.ts`: TypeScript interfaces for Gastify transaction integration
+  - `GastifyTransaction`, `GastifyTransactionItem` interfaces
+- `src/types/item-mapping.ts`: Item mapping types and utilities
+  - `ItemMapping` interface, `COOKING_CATEGORIES` constant, `normalizeItemName()` pure function with slash/empty validation
+- `src/types/pantry.ts`: Pantry item interface
+  - `PantryItem` with `canonicalId`, quantity, unit, expiry, and status
+- `src/services/gastify-transactions.ts`: Cross-app Firestore read service
+  - `getUserTransactions()` — fetch user's Gastify transactions (limit 50, desc by date)
+  - `extractCookingItems()` — flatten, filter by cooking categories, deduplicate by normalized name
+  - `getUnmappedItems()` — filter out items with existing mappings
+- `src/services/item-mappings.ts`: Item mapping CRUD service
+  - `getAllMappings()` — fetch all crowdsourced mappings as a Map
+  - `getMapping(hash)` — fetch single mapping by normalized name
+  - `createMapping(source, canonicalId, userId)` — persist a new mapping (doc ID = normalized name)
+- `src/services/pantry.ts`: Pantry Firestore service
+  - `addToPantry()` — add or merge pantry entry with expiry calculation from `shelfLifeDays`
+  - `getUserPantry()` — fetch all pantry items
+  - `removePantryItem()` — delete a pantry entry
+- `src/stores/mappingStore.ts`: Zustand mapping workflow store (`useMappingStore`)
+  - `loadItems()` — orchestrates fetch, auto-resolve (parallel), and unmapped queue
+  - `mapItem()` — persist mapping + add to pantry + advance queue (with saving guard)
+  - `skipItem()` — skip without mapping
+- `src/components/IngredientPicker.tsx`: Searchable canonical ingredient picker
+  - TanStack Query cached fetch, bilingual search (es/en), category badges, error state
+- `src/pages/MapItemsPage.tsx`: Item mapping UI page
+  - Summary cards (pending/mapped/auto-resolved), unmapped item queue, inline picker
+- `src/App.tsx`: Bottom navigation bar (Inicio / Mapear tabs) with view state
+- `firestore.rules`: Updated with `itemMappings` create rules (field validation) and Gastify transaction read path
+- 60 new Vitest unit tests across 7 test files (total: 97 tests)
+
+### Notes
+- Auto-resolve runs in parallel via `Promise.all` for previously mapped items
+- `normalizeItemName` rejects slashes and empty strings to prevent Firestore path injection
+- IngredientPicker uses TanStack Query (`staleTime: Infinity`) to cache the 70-ingredient dictionary
+
 ## [0.3.0] — 2026-02-24 — Canonical Ingredients Dictionary (#3)
 
 ### Added
