@@ -78,7 +78,6 @@ export default function MapItemsPage() {
         Asigna tus compras a ingredientes del diccionario
       </p>
 
-      {/* Summary cards */}
       <div className="mt-4 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-yellow-50 p-3 text-center">
           <p className="text-2xl font-bold text-yellow-700">
@@ -98,7 +97,6 @@ export default function MapItemsPage() {
         </div>
       </div>
 
-      {/* Unmapped items */}
       {!hasItems && (
         <div className="mt-8 flex flex-1 items-center justify-center">
           <p className="text-sm text-primary-dark/50">

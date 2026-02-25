@@ -28,6 +28,7 @@ export default function IngredientPicker({
   const [searchTerm, setSearchTerm] = useState('')
   const [ingredients, setIngredients] = useState<CanonicalIngredient[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -40,7 +41,10 @@ export default function IngredientPicker({
         }
       })
       .catch(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          setError('Error al cargar ingredientes')
+          setLoading(false)
+        }
       })
     return () => {
       cancelled = true
@@ -75,6 +79,8 @@ export default function IngredientPicker({
         <div className="flex items-center justify-center py-6">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
+      ) : error ? (
+        <p className="text-sm text-red-500 py-4 text-center">{error}</p>
       ) : (
         <ul className="max-h-60 space-y-1 overflow-y-auto">
           {filtered.length === 0 && (

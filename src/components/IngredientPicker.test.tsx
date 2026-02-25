@@ -54,6 +54,7 @@ describe('IngredientPicker', () => {
     )
 
     expect(screen.getByText('Tomate Cherry')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Cargando...')).not.toBeInTheDocument())
   })
 
   it('shows all ingredients after loading', async () => {
