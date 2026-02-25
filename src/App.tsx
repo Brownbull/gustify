@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuthStore } from '@/stores/authStore'
+import MapItemsPage from '@/pages/MapItemsPage'
+
+type AppView = 'home' | 'mapItems'
 
 function UserHeader() {
   const user = useAuthStore((s) => s.user)
@@ -35,13 +39,47 @@ function UserHeader() {
 }
 
 function App() {
+  const [view, setView] = useState<AppView>('home')
+
   return (
     <ProtectedRoute>
       <div className="min-h-dvh bg-surface flex flex-col">
         <UserHeader />
-        <main className="flex flex-1 flex-col items-center justify-center p-4">
-          <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
+        <main className="flex flex-1 flex-col pb-16">
+          {view === 'home' ? (
+            <div className="flex flex-1 flex-col items-center justify-center p-4">
+              <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
+            </div>
+          ) : (
+            <MapItemsPage />
+          )}
         </main>
+        <nav className="fixed bottom-0 left-0 right-0 border-t border-primary/10 bg-surface-light">
+          <div className="flex">
+            <button
+              type="button"
+              onClick={() => setView('home')}
+              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                view === 'home'
+                  ? 'text-primary'
+                  : 'text-primary-dark/40 hover:text-primary-dark/60'
+              }`}
+            >
+              Inicio
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('mapItems')}
+              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                view === 'mapItems'
+                  ? 'text-primary'
+                  : 'text-primary-dark/40 hover:text-primary-dark/60'
+              }`}
+            >
+              Mapear
+            </button>
+          </div>
+        </nav>
       </div>
     </ProtectedRoute>
   )
