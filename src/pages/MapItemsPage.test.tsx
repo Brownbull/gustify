@@ -1,23 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ExtractedItem } from '@/services/gastify-transactions'
 
 const mockLoadItems = vi.fn()
 const mockMapItem = vi.fn()
+const mockMarkPrepared = vi.fn()
 const mockSkipItem = vi.fn()
+const mockRestoreItem = vi.fn()
 const mockSetSelectedItem = vi.fn()
 const mockClearError = vi.fn()
 
-// Mock IngredientPicker to avoid deeply nested async loading
-vi.mock('@/components/IngredientPicker', () => ({
-  default: ({ itemName, onSelect, onSkip }: { itemName: string; onSelect: (ing: unknown) => void; onSkip: () => void }) => (
-    <div data-testid="ingredient-picker">
-      <span>{itemName}</span>
+// Mock IngredientPickerModal (replaces inline picker)
+vi.mock('@/components/IngredientPickerModal', () => ({
+  default: ({ item, onSelect, onSkip, onMarkPrepared, onClose }: {
+    item: { originalName: string }
+    onSelect: (ing: unknown) => void
+    onSkip: () => void
+    onMarkPrepared: () => void
+    onClose: () => void
+  }) => (
+    <div data-testid="ingredient-picker-modal">
+      <span>{item.originalName}</span>
       <button onClick={() => onSelect({ id: 'tomato', names: { es: 'Tomate' } })}>
         Select Tomato
       </button>
+      <button onClick={onMarkPrepared}>Comida preparada</button>
       <button onClick={onSkip}>Omitir</button>
+      <button onClick={onClose}>Cerrar</button>
     </div>
   ),
 }))
@@ -61,7 +71,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   storeState = {
     unmappedItems: [],
+    skippedItems: [],
     mappedCount: 0,
+    preparedCount: 0,
     autoResolvedCount: 0,
     loading: false,
     saving: false,
@@ -69,7 +81,9 @@ beforeEach(() => {
     selectedItem: null,
     loadItems: mockLoadItems,
     mapItem: mockMapItem,
+    markPrepared: mockMarkPrepared,
     skipItem: mockSkipItem,
+    restoreItem: mockRestoreItem,
     setSelectedItem: mockSetSelectedItem,
     clearError: mockClearError,
   }
@@ -95,9 +109,19 @@ describe('MapItemsPage', () => {
     expect(mockLoadItems).toHaveBeenCalledWith('test-user')
   })
 
-  it('shows empty state when no unmapped items', () => {
+  it('shows empty state when no unmapped or skipped items', () => {
     render(<MapItemsPage />)
     expect(screen.getByText('No hay items nuevos para mapear')).toBeInTheDocument()
+  })
+
+  it('does not show empty state when only skipped items exist', () => {
+    storeState = {
+      ...storeState,
+      skippedItems: [sampleItem],
+    }
+
+    render(<MapItemsPage />)
+    expect(screen.queryByText('No hay items nuevos para mapear')).not.toBeInTheDocument()
   })
 
   it('renders unmapped items with summary counts', () => {
@@ -117,7 +141,22 @@ describe('MapItemsPage', () => {
     expect(screen.getByText('Arroz Largo')).toBeInTheDocument()
   })
 
-  it('shows IngredientPicker when an item is selected', async () => {
+  it('shows combined mappedCount + preparedCount in Mapeados summary', () => {
+    storeState = {
+      ...storeState,
+      unmappedItems: [sampleItem],
+      mappedCount: 3,
+      preparedCount: 2,
+      autoResolvedCount: 1,
+    }
+
+    render(<MapItemsPage />)
+
+    expect(screen.getByText('5')).toBeInTheDocument() // 3 mapped + 2 prepared
+    expect(screen.getByText('Mapeados')).toBeInTheDocument()
+  })
+
+  it('shows modal when an item is selected', () => {
     storeState = {
       ...storeState,
       unmappedItems: [sampleItem],
@@ -126,8 +165,68 @@ describe('MapItemsPage', () => {
 
     render(<MapItemsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByTestId('ingredient-picker')).toBeInTheDocument()
-    })
+    expect(screen.getByTestId('ingredient-picker-modal')).toBeInTheDocument()
+  })
+
+  it('does not show modal when no item is selected', () => {
+    storeState = {
+      ...storeState,
+      unmappedItems: [sampleItem],
+    }
+
+    render(<MapItemsPage />)
+
+    expect(screen.queryByTestId('ingredient-picker-modal')).not.toBeInTheDocument()
+  })
+
+  it('calls markPrepared via modal', async () => {
+    const user = userEvent.setup()
+    storeState = {
+      ...storeState,
+      unmappedItems: [sampleItem],
+      selectedItem: sampleItem,
+    }
+
+    render(<MapItemsPage />)
+
+    await user.click(screen.getByText('Comida preparada'))
+    expect(mockMarkPrepared).toHaveBeenCalledWith(sampleItem, 'test-user')
+  })
+
+  it('shows Omitidos section when items are skipped', () => {
+    storeState = {
+      ...storeState,
+      skippedItems: [sampleItem],
+    }
+
+    render(<MapItemsPage />)
+
+    expect(screen.getByText('Omitidos (1)')).toBeInTheDocument()
+    expect(screen.getByText('Tomate Cherry')).toBeInTheDocument()
+    expect(screen.getByText('Restaurar')).toBeInTheDocument()
+  })
+
+  it('does not show Omitidos section when no items are skipped', () => {
+    storeState = {
+      ...storeState,
+      unmappedItems: [sampleItem],
+    }
+
+    render(<MapItemsPage />)
+
+    expect(screen.queryByText(/Omitidos/)).not.toBeInTheDocument()
+  })
+
+  it('calls restoreItem when Restaurar button is clicked', async () => {
+    const user = userEvent.setup()
+    storeState = {
+      ...storeState,
+      skippedItems: [sampleItem],
+    }
+
+    render(<MapItemsPage />)
+
+    await user.click(screen.getByText('Restaurar'))
+    expect(mockRestoreItem).toHaveBeenCalledWith(sampleItem)
   })
 })

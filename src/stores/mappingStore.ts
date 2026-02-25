@@ -8,12 +8,15 @@ import {
 } from '@/services/gastify-transactions'
 import { getAllMappings } from '@/services/item-mappings'
 import { createMapping } from '@/services/item-mappings'
-import { addToPantry } from '@/services/pantry'
+import { addToPantry, addPreparedToPantry } from '@/services/pantry'
 import { getCanonicalIngredient } from '@/services/ingredients'
+import { preparedFoodId } from '@/types/item-mapping'
 
 interface MappingState {
   unmappedItems: ExtractedItem[]
+  skippedItems: ExtractedItem[]
   mappedCount: number
+  preparedCount: number
   autoResolvedCount: number
   loading: boolean
   saving: boolean
@@ -26,14 +29,18 @@ interface MappingState {
     ingredient: CanonicalIngredient,
     userId: string,
   ) => Promise<void>
+  markPrepared: (item: ExtractedItem, userId: string) => Promise<void>
   skipItem: (item: ExtractedItem) => void
+  restoreItem: (item: ExtractedItem) => void
   setSelectedItem: (item: ExtractedItem | null) => void
   clearError: () => void
 }
 
 export const useMappingStore = create<MappingState>((set, get) => ({
   unmappedItems: [],
+  skippedItems: [],
   mappedCount: 0,
+  preparedCount: 0,
   autoResolvedCount: 0,
   loading: false,
   saving: false,
@@ -42,7 +49,7 @@ export const useMappingStore = create<MappingState>((set, get) => ({
 
   loadItems: async (userId: string) => {
     if (get().loading) return
-    set({ loading: true, mappedCount: 0, error: null })
+    set({ loading: true, mappedCount: 0, preparedCount: 0, skippedItems: [], error: null })
     try {
       const [transactions, mappings] = await Promise.all([
         getUserTransactions(userId),
@@ -60,10 +67,20 @@ export const useMappingStore = create<MappingState>((set, get) => ({
       await Promise.all(
         autoResolved.map(async (item) => {
           const mapping = mappings.get(item.normalizedName)!
-          const ingredient = await getCanonicalIngredient(mapping.canonicalId)
-          if (ingredient) {
-            await addToPantry(userId, mapping.canonicalId, ingredient, item.transactionId)
+          if (mapping.type === 'prepared') {
+            await addPreparedToPantry(
+              userId,
+              item.originalName,
+              item.normalizedName,
+              item.transactionId,
+            )
             resolved++
+          } else {
+            const ingredient = await getCanonicalIngredient(mapping.canonicalId)
+            if (ingredient) {
+              await addToPantry(userId, mapping.canonicalId, ingredient, item.transactionId)
+              resolved++
+            }
           }
         }),
       )
@@ -106,13 +123,52 @@ export const useMappingStore = create<MappingState>((set, get) => ({
     }
   },
 
+  markPrepared: async (item: ExtractedItem, userId: string) => {
+    if (get().saving) return
+    set({ saving: true })
+    try {
+      const docId = preparedFoodId(item.normalizedName)
+      await createMapping(item.originalName, docId, userId, 'prepared')
+      await addPreparedToPantry(
+        userId,
+        item.originalName,
+        item.normalizedName,
+        item.transactionId,
+      )
+
+      const state = get()
+      set({
+        unmappedItems: state.unmappedItems.filter(
+          (i) => i.normalizedName !== item.normalizedName,
+        ),
+        preparedCount: state.preparedCount + 1,
+        selectedItem: null,
+        saving: false,
+      })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Error desconocido'
+      set({ error: message, saving: false })
+    }
+  },
+
   skipItem: (item: ExtractedItem) => {
     const state = get()
     set({
       unmappedItems: state.unmappedItems.filter(
         (i) => i.normalizedName !== item.normalizedName,
       ),
+      skippedItems: [...state.skippedItems, item],
       selectedItem: null,
+    })
+  },
+
+  restoreItem: (item: ExtractedItem) => {
+    const state = get()
+    set({
+      skippedItems: state.skippedItems.filter(
+        (i) => i.normalizedName !== item.normalizedName,
+      ),
+      unmappedItems: [...state.unmappedItems, item],
     })
   },
 

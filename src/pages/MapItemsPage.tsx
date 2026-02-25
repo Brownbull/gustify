@@ -1,20 +1,24 @@
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useMappingStore } from '@/stores/mappingStore'
-import IngredientPicker from '@/components/IngredientPicker'
+import IngredientPickerModal from '@/components/IngredientPickerModal'
 import type { CanonicalIngredient } from '@/types/ingredient'
 
 export default function MapItemsPage() {
   const user = useAuthStore((s) => s.user)
   const unmappedItems = useMappingStore((s) => s.unmappedItems)
+  const skippedItems = useMappingStore((s) => s.skippedItems)
   const mappedCount = useMappingStore((s) => s.mappedCount)
   const autoResolvedCount = useMappingStore((s) => s.autoResolvedCount)
   const loading = useMappingStore((s) => s.loading)
   const error = useMappingStore((s) => s.error)
   const selectedItem = useMappingStore((s) => s.selectedItem)
   const loadItems = useMappingStore((s) => s.loadItems)
+  const preparedCount = useMappingStore((s) => s.preparedCount)
   const mapItem = useMappingStore((s) => s.mapItem)
+  const markPrepared = useMappingStore((s) => s.markPrepared)
   const skipItem = useMappingStore((s) => s.skipItem)
+  const restoreItem = useMappingStore((s) => s.restoreItem)
   const setSelectedItem = useMappingStore((s) => s.setSelectedItem)
   const clearError = useMappingStore((s) => s.clearError)
 
@@ -27,6 +31,11 @@ export default function MapItemsPage() {
   function handleSelect(ingredient: CanonicalIngredient) {
     if (!selectedItem || !user) return
     mapItem(selectedItem, ingredient.id, ingredient, user.uid)
+  }
+
+  function handleMarkPrepared() {
+    if (!selectedItem || !user) return
+    markPrepared(selectedItem, user.uid)
   }
 
   function handleSkip() {
@@ -66,6 +75,7 @@ export default function MapItemsPage() {
   }
 
   const hasItems = unmappedItems.length > 0
+  const hasSkippedItems = skippedItems.length > 0
 
   return (
     <div className="flex flex-1 flex-col p-4">
@@ -84,7 +94,7 @@ export default function MapItemsPage() {
           <p className="text-xs text-yellow-600">Pendientes</p>
         </div>
         <div className="rounded-lg bg-green-50 p-3 text-center">
-          <p className="text-2xl font-bold text-green-700">{mappedCount}</p>
+          <p className="text-2xl font-bold text-green-700">{mappedCount + preparedCount}</p>
           <p className="text-xs text-green-600">Mapeados</p>
         </div>
         <div className="rounded-lg bg-blue-50 p-3 text-center">
@@ -95,7 +105,7 @@ export default function MapItemsPage() {
         </div>
       </div>
 
-      {!hasItems && (
+      {!hasItems && !hasSkippedItems && (
         <div className="mt-8 flex flex-1 items-center justify-center">
           <p className="text-sm text-primary-dark/50">
             No hay items nuevos para mapear
@@ -110,11 +120,7 @@ export default function MapItemsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedItem(item)}
-                className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                  selectedItem?.normalizedName === item.normalizedName
-                    ? 'border-primary bg-primary/5'
-                    : 'border-primary/10 bg-white hover:border-primary/30'
-                }`}
+                className="w-full rounded-lg border border-primary/10 bg-white p-3 text-left transition-colors hover:border-primary/30"
               >
                 <p className="font-medium text-primary-dark">
                   {item.originalName}
@@ -127,19 +133,53 @@ export default function MapItemsPage() {
                   <span>{item.date}</span>
                 </div>
               </button>
-
-              {selectedItem?.normalizedName === item.normalizedName && (
-                <div className="mt-2">
-                  <IngredientPicker
-                    itemName={item.originalName}
-                    onSelect={handleSelect}
-                    onSkip={handleSkip}
-                  />
-                </div>
-              )}
             </li>
           ))}
         </ul>
+      )}
+
+      {hasSkippedItems && (
+        <div className="mt-6">
+          <h3 className="mb-2 text-sm font-semibold text-primary-dark/40">
+            Omitidos ({skippedItems.length})
+          </h3>
+          <ul className="space-y-2">
+            {skippedItems.map((item) => (
+              <li
+                key={item.normalizedName}
+                className="flex items-center justify-between rounded-lg border border-primary/5 bg-surface-dark/30 p-3 opacity-60"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-primary-dark">
+                    {item.originalName}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-primary-dark/50">
+                    <span>{item.category}</span>
+                    <span>·</span>
+                    <span>{item.merchant}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => restoreItem(item)}
+                  className="ml-3 shrink-0 rounded-md border border-primary/20 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  Restaurar
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {selectedItem && (
+        <IngredientPickerModal
+          item={selectedItem}
+          onSelect={handleSelect}
+          onSkip={handleSkip}
+          onMarkPrepared={handleMarkPrepared}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </div>
   )
