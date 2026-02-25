@@ -41,6 +41,7 @@ beforeEach(() => {
     mappedCount: 0,
     autoResolvedCount: 0,
     loading: false,
+    saving: false,
     error: null,
     selectedItem: null,
   })

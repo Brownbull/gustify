@@ -1,6 +1,7 @@
 import type { Timestamp } from 'firebase/firestore'
 
 export interface PantryItem {
+  id: string
   canonicalId: string
   name: string
   quantity: number

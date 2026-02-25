@@ -79,10 +79,16 @@ describe('addToPantry', () => {
   })
 
   it('calculates expiry based on shelfLifeDays', async () => {
+    vi.useFakeTimers()
+    const now = new Date('2026-03-01T12:00:00Z')
+    vi.setSystemTime(now)
+
     mockDoc.mockReturnValue('doc-ref')
     mockSetDoc.mockResolvedValue(undefined)
     mockTimestampNow.mockReturnValue({ seconds: 1000 })
-    mockTimestampFromDate.mockReturnValue({ seconds: 9999 })
+    mockTimestampFromDate.mockImplementation((d: Date) => ({
+      seconds: Math.floor(d.getTime() / 1000),
+    }))
 
     const rice: CanonicalIngredient = {
       id: 'rice',
@@ -95,7 +101,10 @@ describe('addToPantry', () => {
 
     await addToPantry('user-1', 'rice', rice)
 
-    expect(mockTimestampFromDate).toHaveBeenCalledWith(expect.any(Date))
+    const expectedExpiry = new Date(now.getTime() + 365 * 86_400_000)
+    expect(mockTimestampFromDate).toHaveBeenCalledWith(expectedExpiry)
+
+    vi.useRealTimers()
   })
 
   it('propagates error when setDoc fails', async () => {
@@ -131,6 +140,7 @@ describe('getUserPantry', () => {
 
     expect(mockCollection).toHaveBeenCalledWith({}, 'users/user-1/pantry')
     expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('tomato')
     expect(result[0].canonicalId).toBe('tomato')
   })
 

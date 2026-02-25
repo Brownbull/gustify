@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { CanonicalIngredient } from '@/types/ingredient'
 import { getCanonicalIngredients } from '@/services/ingredients'
 
@@ -26,39 +27,29 @@ export default function IngredientPicker({
   onSkip,
 }: IngredientPickerProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [ingredients, setIngredients] = useState<CanonicalIngredient[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    getCanonicalIngredients()
-      .then((data) => {
-        if (!cancelled) {
-          setIngredients(data)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError('Error al cargar ingredientes')
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const filtered = ingredients.filter((ing) => {
-    if (!searchTerm) return true
-    const term = searchTerm.toLowerCase()
-    return (
-      ing.names.es.toLowerCase().includes(term) ||
-      ing.names.en.toLowerCase().includes(term)
-    )
+  const {
+    data: ingredients = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['canonicalIngredients'],
+    queryFn: getCanonicalIngredients,
+    staleTime: Infinity,
   })
+
+  const filtered = useMemo(
+    () =>
+      ingredients.filter((ing) => {
+        if (!searchTerm) return true
+        const term = searchTerm.toLowerCase()
+        return (
+          ing.names.es.toLowerCase().includes(term) ||
+          ing.names.en.toLowerCase().includes(term)
+        )
+      }),
+    [ingredients, searchTerm],
+  )
 
   return (
     <div className="rounded-lg border border-primary/20 bg-white p-4 shadow-sm">
@@ -80,7 +71,9 @@ export default function IngredientPicker({
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       ) : error ? (
-        <p className="text-sm text-red-500 py-4 text-center">{error}</p>
+        <p className="text-sm text-red-500 py-4 text-center">
+          Error al cargar ingredientes
+        </p>
       ) : (
         <ul className="max-h-60 space-y-1 overflow-y-auto">
           {filtered.length === 0 && (

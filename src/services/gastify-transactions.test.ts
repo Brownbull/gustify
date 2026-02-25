@@ -3,6 +3,8 @@ import type { GastifyTransaction } from '@/types/gastify'
 import type { ItemMapping } from '@/types/item-mapping'
 import type { Timestamp } from 'firebase/firestore'
 
+const TEST_PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID ?? 'test-project'
+
 const mockGetDocs = vi.fn()
 const mockCollection = vi.fn()
 const mockQuery = vi.fn()
@@ -53,7 +55,10 @@ describe('getUserTransactions', () => {
 
     const result = await getUserTransactions('user-123')
 
-    expect(mockCollection).toHaveBeenCalled()
+    expect(mockCollection).toHaveBeenCalledWith(
+      {},
+      `artifacts/${TEST_PROJECT_ID}/users/user-123/transactions`,
+    )
     expect(mockOrderBy).toHaveBeenCalledWith('date', 'desc')
     expect(mockLimit).toHaveBeenCalledWith(50)
     expect(result).toHaveLength(1)

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { CanonicalIngredient } from '@/types/ingredient'
 
 const mockGetCanonicalIngredients = vi.fn()
@@ -38,6 +39,17 @@ const sampleIngredients: CanonicalIngredient[] = [
   },
 ]
 
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockGetCanonicalIngredients.mockResolvedValue(sampleIngredients)
@@ -51,10 +63,13 @@ describe('IngredientPicker', () => {
         onSelect={vi.fn()}
         onSkip={vi.fn()}
       />,
+      { wrapper: createWrapper() },
     )
 
     expect(screen.getByText('Tomate Cherry')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Cargando...')).not.toBeInTheDocument())
+    await waitFor(() => {
+      expect(screen.getByText('Tomate')).toBeInTheDocument()
+    })
   })
 
   it('shows all ingredients after loading', async () => {
@@ -64,6 +79,7 @@ describe('IngredientPicker', () => {
         onSelect={vi.fn()}
         onSkip={vi.fn()}
       />,
+      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {
@@ -82,6 +98,7 @@ describe('IngredientPicker', () => {
         onSelect={vi.fn()}
         onSkip={vi.fn()}
       />,
+      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {
@@ -105,6 +122,7 @@ describe('IngredientPicker', () => {
         onSelect={onSelect}
         onSkip={vi.fn()}
       />,
+      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {
@@ -126,6 +144,7 @@ describe('IngredientPicker', () => {
         onSelect={vi.fn()}
         onSkip={onSkip}
       />,
+      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {
@@ -135,5 +154,24 @@ describe('IngredientPicker', () => {
     await user.click(screen.getByText('Omitir'))
 
     expect(onSkip).toHaveBeenCalledOnce()
+  })
+
+  it('renders error message when loading fails', async () => {
+    mockGetCanonicalIngredients.mockRejectedValue(new Error('network'))
+
+    render(
+      <IngredientPicker
+        itemName="Test"
+        onSelect={vi.fn()}
+        onSkip={vi.fn()}
+      />,
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Error al cargar ingredientes'),
+      ).toBeInTheDocument()
+    })
   })
 })

@@ -6,19 +6,17 @@ import type { CanonicalIngredient } from '@/types/ingredient'
 
 export default function MapItemsPage() {
   const user = useAuthStore((s) => s.user)
-  const {
-    unmappedItems,
-    mappedCount,
-    autoResolvedCount,
-    loading,
-    error,
-    selectedItem,
-    loadItems,
-    mapItem,
-    skipItem,
-    setSelectedItem,
-    clearError,
-  } = useMappingStore()
+  const unmappedItems = useMappingStore((s) => s.unmappedItems)
+  const mappedCount = useMappingStore((s) => s.mappedCount)
+  const autoResolvedCount = useMappingStore((s) => s.autoResolvedCount)
+  const loading = useMappingStore((s) => s.loading)
+  const error = useMappingStore((s) => s.error)
+  const selectedItem = useMappingStore((s) => s.selectedItem)
+  const loadItems = useMappingStore((s) => s.loadItems)
+  const mapItem = useMappingStore((s) => s.mapItem)
+  const skipItem = useMappingStore((s) => s.skipItem)
+  const setSelectedItem = useMappingStore((s) => s.setSelectedItem)
+  const clearError = useMappingStore((s) => s.clearError)
 
   useEffect(() => {
     if (user) {
@@ -93,7 +91,7 @@ export default function MapItemsPage() {
           <p className="text-2xl font-bold text-blue-700">
             {autoResolvedCount}
           </p>
-          <p className="text-xs text-blue-600">Automaticos</p>
+          <p className="text-xs text-blue-600">{`Autom\u00e1ticos`}</p>
         </div>
       </div>
 

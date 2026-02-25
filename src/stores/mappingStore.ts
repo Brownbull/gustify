@@ -16,6 +16,7 @@ interface MappingState {
   mappedCount: number
   autoResolvedCount: number
   loading: boolean
+  saving: boolean
   error: string | null
   selectedItem: ExtractedItem | null
   loadItems: (userId: string) => Promise<void>
@@ -35,14 +36,18 @@ export const useMappingStore = create<MappingState>((set, get) => ({
   mappedCount: 0,
   autoResolvedCount: 0,
   loading: false,
+  saving: false,
   error: null,
   selectedItem: null,
 
   loadItems: async (userId: string) => {
-    set({ loading: true, error: null })
+    if (get().loading) return
+    set({ loading: true, mappedCount: 0, error: null })
     try {
-      const transactions = await getUserTransactions(userId)
-      const mappings = await getAllMappings()
+      const [transactions, mappings] = await Promise.all([
+        getUserTransactions(userId),
+        getAllMappings(),
+      ])
       const cookingItems = extractCookingItems(transactions)
       const unmapped = getUnmappedItems(cookingItems, mappings)
 
@@ -52,14 +57,16 @@ export const useMappingStore = create<MappingState>((set, get) => ({
       )
 
       let resolved = 0
-      for (const item of autoResolved) {
-        const mapping = mappings.get(item.normalizedName)!
-        const ingredient = await getCanonicalIngredient(mapping.canonicalId)
-        if (ingredient) {
-          await addToPantry(userId, mapping.canonicalId, ingredient, item.transactionId)
-          resolved++
-        }
-      }
+      await Promise.all(
+        autoResolved.map(async (item) => {
+          const mapping = mappings.get(item.normalizedName)!
+          const ingredient = await getCanonicalIngredient(mapping.canonicalId)
+          if (ingredient) {
+            await addToPantry(userId, mapping.canonicalId, ingredient, item.transactionId)
+            resolved++
+          }
+        }),
+      )
 
       set({
         unmappedItems: unmapped,
@@ -78,6 +85,8 @@ export const useMappingStore = create<MappingState>((set, get) => ({
     ingredient: CanonicalIngredient,
     userId: string,
   ) => {
+    if (get().saving) return
+    set({ saving: true })
     try {
       await createMapping(item.originalName, canonicalId, userId)
       await addToPantry(userId, canonicalId, ingredient, item.transactionId)
@@ -89,10 +98,11 @@ export const useMappingStore = create<MappingState>((set, get) => ({
         ),
         mappedCount: state.mappedCount + 1,
         selectedItem: null,
+        saving: false,
       })
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error desconocido'
-      set({ error: message })
+      set({ error: message, saving: false })
     }
   },
 

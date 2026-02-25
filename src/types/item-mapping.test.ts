@@ -22,12 +22,20 @@ describe('normalizeItemName', () => {
     )
   })
 
-  it('returns empty string for empty input', () => {
-    expect(normalizeItemName('')).toBe('')
+  it('throws on empty input', () => {
+    expect(() => normalizeItemName('')).toThrow('Invalid item name')
   })
 
-  it('returns empty string for whitespace-only input', () => {
-    expect(normalizeItemName('   ')).toBe('')
+  it('throws on whitespace-only input', () => {
+    expect(() => normalizeItemName('   ')).toThrow('Invalid item name')
+  })
+
+  it('throws on names containing slashes', () => {
+    expect(() => normalizeItemName('milk/../users')).toThrow('Invalid item name')
+  })
+
+  it('throws on names with forward slash', () => {
+    expect(() => normalizeItemName('a/b')).toThrow('Invalid item name')
   })
 
   it('handles single word without modification needed', () => {

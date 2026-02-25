@@ -17,7 +17,7 @@ function pantryPath(userId: string): string {
 }
 
 function docToPantryItem(d: QueryDocumentSnapshot<DocumentData>): PantryItem {
-  return { ...d.data() } as PantryItem
+  return { id: d.id, ...d.data() } as PantryItem
 }
 
 /**

@@ -26,7 +26,12 @@ export type CookingCategory = (typeof COOKING_CATEGORIES)[number]
 /**
  * Normalizes a raw grocery item name for consistent lookup.
  * Lowercases, trims whitespace, and collapses multiple spaces to one.
+ * Throws on empty or path-traversal input (names containing '/').
  */
 export function normalizeItemName(name: string): string {
-  return name.toLowerCase().trim().replace(/\s+/g, ' ')
+  const normalized = name.toLowerCase().trim().replace(/\s+/g, ' ')
+  if (!normalized || normalized.includes('/')) {
+    throw new Error('Invalid item name')
+  }
+  return normalized
 }

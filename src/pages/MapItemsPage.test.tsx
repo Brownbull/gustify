@@ -46,7 +46,8 @@ const sampleItem2: ExtractedItem = {
 let storeState: Record<string, unknown> = {}
 
 vi.mock('@/stores/mappingStore', () => ({
-  useMappingStore: () => storeState,
+  useMappingStore: (selector: (s: Record<string, unknown>) => unknown) =>
+    selector(storeState),
 }))
 
 vi.mock('@/stores/authStore', () => ({
@@ -63,6 +64,7 @@ beforeEach(() => {
     mappedCount: 0,
     autoResolvedCount: 0,
     loading: false,
+    saving: false,
     error: null,
     selectedItem: null,
     loadItems: mockLoadItems,

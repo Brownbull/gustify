@@ -12,7 +12,7 @@ import type { GastifyTransaction, GastifyTransactionItem } from '@/types/gastify
 import { COOKING_CATEGORIES, normalizeItemName } from '@/types/item-mapping'
 import type { ItemMapping } from '@/types/item-mapping'
 
-const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID
+const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined
 
 export interface ExtractedItem {
   originalName: string
@@ -35,6 +35,9 @@ function docToTransaction(d: QueryDocumentSnapshot<DocumentData>): GastifyTransa
 export async function getUserTransactions(
   userId: string,
 ): Promise<GastifyTransaction[]> {
+  if (!PROJECT_ID) {
+    throw new Error('VITE_FIREBASE_PROJECT_ID is not set')
+  }
   const colPath = `artifacts/${PROJECT_ID}/users/${userId}/transactions`
   const q = query(
     collection(db, colPath),
