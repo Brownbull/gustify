@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeItemName, COOKING_CATEGORIES } from './item-mapping'
+import { normalizeItemName, COOKING_CATEGORIES, preparedFoodId, PREPARED_FOOD_PREFIX } from './item-mapping'
 
 describe('normalizeItemName', () => {
   it('lowercases the input', () => {
@@ -44,6 +44,27 @@ describe('normalizeItemName', () => {
 
   it('handles tabs and mixed whitespace', () => {
     expect(normalizeItemName('pan\t  blanco')).toBe('pan blanco')
+  })
+})
+
+describe('preparedFoodId', () => {
+  it('generates an ID with the prepared prefix', () => {
+    expect(preparedFoodId('pizza congelada')).toBe('prepared_pizza_congelada')
+  })
+
+  it('replaces spaces with underscores', () => {
+    expect(preparedFoodId('lasaña lista para hornear')).toBe(
+      'prepared_lasaña_lista_para_hornear',
+    )
+  })
+
+  it('handles single word names', () => {
+    expect(preparedFoodId('sushi')).toBe('prepared_sushi')
+  })
+
+  it('starts with PREPARED_FOOD_PREFIX', () => {
+    const result = preparedFoodId('helado')
+    expect(result.startsWith(PREPARED_FOOD_PREFIX)).toBe(true)
   })
 })
 

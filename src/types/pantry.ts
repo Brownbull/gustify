@@ -1,5 +1,7 @@
 import type { Timestamp } from 'firebase/firestore'
 
+export type PantryItemType = 'ingredient' | 'prepared'
+
 export interface PantryItem {
   id: string
   canonicalId: string
@@ -10,4 +12,5 @@ export interface PantryItem {
   estimatedExpiry: Timestamp
   sourceTransactionId?: string
   status: 'available' | 'low' | 'expired'
+  type?: PantryItemType
 }

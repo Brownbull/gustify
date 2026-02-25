@@ -11,6 +11,11 @@ import {
 import { db } from '@/config/firebase'
 import type { CanonicalIngredient } from '@/types/ingredient'
 import type { PantryItem } from '@/types/pantry'
+import {
+  PREPARED_FOOD_SHELF_LIFE_DAYS,
+  PREPARED_FOOD_UNIT,
+  preparedFoodId,
+} from '@/types/item-mapping'
 
 function pantryPath(userId: string): string {
   return `users/${userId}/pantry`
@@ -60,6 +65,36 @@ export async function getUserPantry(
 ): Promise<PantryItem[]> {
   const snapshot = await getDocs(collection(db, pantryPath(userId)))
   return snapshot.docs.map(docToPantryItem)
+}
+
+/**
+ * Adds a prepared food item to the user's pantry.
+ * Uses the original item name as display name and a generated ID as doc key.
+ */
+export async function addPreparedToPantry(
+  userId: string,
+  itemName: string,
+  normalizedName: string,
+  sourceTransactionId?: string,
+): Promise<void> {
+  const docId = preparedFoodId(normalizedName)
+  const expiryMs = Date.now() + PREPARED_FOOD_SHELF_LIFE_DAYS * 86_400_000
+  const data: Record<string, unknown> = {
+    canonicalId: docId,
+    name: itemName,
+    quantity: 1,
+    unit: PREPARED_FOOD_UNIT,
+    purchasedAt: Timestamp.now(),
+    estimatedExpiry: Timestamp.fromDate(new Date(expiryMs)),
+    status: 'available',
+    type: 'prepared',
+  }
+
+  if (sourceTransactionId) {
+    data.sourceTransactionId = sourceTransactionId
+  }
+
+  await setDoc(doc(db, pantryPath(userId), docId), data, { merge: true })
 }
 
 /**

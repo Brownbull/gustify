@@ -25,7 +25,7 @@ vi.mock('@/config/firebase', () => ({
   db: {},
 }))
 
-import { addToPantry, getUserPantry, removePantryItem } from './pantry'
+import { addToPantry, addPreparedToPantry, getUserPantry, removePantryItem } from './pantry'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -35,6 +35,7 @@ const tomato: CanonicalIngredient = {
   id: 'tomato',
   names: { es: 'Tomate', en: 'Tomato' },
   category: 'Vegetable',
+  icon: '🍅',
   defaultUnit: 'kg',
   shelfLifeDays: 7,
   substitutions: ['bell_pepper'],
@@ -94,6 +95,7 @@ describe('addToPantry', () => {
       id: 'rice',
       names: { es: 'Arroz', en: 'Rice' },
       category: 'Grain',
+      icon: '🍚',
       defaultUnit: 'kg',
       shelfLifeDays: 365,
       substitutions: [],
@@ -115,6 +117,82 @@ describe('addToPantry', () => {
 
     await expect(
       addToPantry('user-1', 'tomato', tomato),
+    ).rejects.toThrow('permission-denied')
+  })
+})
+
+describe('addPreparedToPantry', () => {
+  it('writes to the correct path with type prepared', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockResolvedValue(undefined)
+    mockTimestampNow.mockReturnValue({ seconds: 1000 })
+    mockTimestampFromDate.mockReturnValue({ seconds: 8776000 })
+
+    await addPreparedToPantry('user-1', 'Pizza congelada', 'pizza congelada', 'tx-50')
+
+    expect(mockDoc).toHaveBeenCalledWith(
+      {},
+      'users/user-1/pantry',
+      'prepared_pizza_congelada',
+    )
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      'doc-ref',
+      {
+        canonicalId: 'prepared_pizza_congelada',
+        name: 'Pizza congelada',
+        quantity: 1,
+        unit: 'unidad',
+        purchasedAt: { seconds: 1000 },
+        estimatedExpiry: { seconds: 8776000 },
+        status: 'available',
+        type: 'prepared',
+        sourceTransactionId: 'tx-50',
+      },
+      { merge: true },
+    )
+  })
+
+  it('omits sourceTransactionId when not provided', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockResolvedValue(undefined)
+    mockTimestampNow.mockReturnValue({ seconds: 1000 })
+    mockTimestampFromDate.mockReturnValue({ seconds: 8776000 })
+
+    await addPreparedToPantry('user-1', 'Helado', 'helado')
+
+    const writtenData = mockSetDoc.mock.calls[0][1]
+    expect(writtenData).not.toHaveProperty('sourceTransactionId')
+    expect(writtenData.type).toBe('prepared')
+  })
+
+  it('uses 90-day shelf life', async () => {
+    vi.useFakeTimers()
+    const now = new Date('2026-03-01T12:00:00Z')
+    vi.setSystemTime(now)
+
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockResolvedValue(undefined)
+    mockTimestampNow.mockReturnValue({ seconds: 1000 })
+    mockTimestampFromDate.mockImplementation((d: Date) => ({
+      seconds: Math.floor(d.getTime() / 1000),
+    }))
+
+    await addPreparedToPantry('user-1', 'Pizza', 'pizza')
+
+    const expectedExpiry = new Date(now.getTime() + 90 * 86_400_000)
+    expect(mockTimestampFromDate).toHaveBeenCalledWith(expectedExpiry)
+
+    vi.useRealTimers()
+  })
+
+  it('propagates error when setDoc fails', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockRejectedValue(new Error('permission-denied'))
+    mockTimestampNow.mockReturnValue({ seconds: 1000 })
+    mockTimestampFromDate.mockReturnValue({ seconds: 8776000 })
+
+    await expect(
+      addPreparedToPantry('user-1', 'Pizza', 'pizza'),
     ).rejects.toThrow('permission-denied')
   })
 })

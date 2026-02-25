@@ -13,6 +13,7 @@ export interface CanonicalIngredient {
   id: string
   names: { es: string; en: string }
   category: IngredientCategory
+  icon: string
   defaultUnit: string
   shelfLifeDays: number
   substitutions: string[]

@@ -11,6 +11,7 @@ import {
 import { db } from '@/config/firebase'
 import type { ItemMapping } from '@/types/item-mapping'
 import { normalizeItemName } from '@/types/item-mapping'
+import type { PantryItemType } from '@/types/pantry'
 
 const COLLECTION = 'itemMappings'
 
@@ -46,13 +47,18 @@ export async function createMapping(
   source: string,
   canonicalId: string,
   userId: string,
+  type?: PantryItemType,
 ): Promise<void> {
   const normalized = normalizeItemName(source)
-  await setDoc(doc(db, COLLECTION, normalized), {
+  const data: Record<string, unknown> = {
     canonicalId,
     source,
     normalizedSource: normalized,
     createdBy: userId,
     createdAt: Timestamp.now(),
-  })
+  }
+  if (type) {
+    data.type = type
+  }
+  await setDoc(doc(db, COLLECTION, normalized), data)
 }

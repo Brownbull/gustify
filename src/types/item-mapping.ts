@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore'
+import type { PantryItemType } from './pantry'
 
 export interface ItemMapping {
   canonicalId: string
@@ -6,6 +7,28 @@ export interface ItemMapping {
   normalizedSource: string
   createdBy: string
   createdAt: Timestamp
+  type?: PantryItemType
+}
+
+/** Prefix for prepared food IDs in pantry and item mappings */
+export const PREPARED_FOOD_PREFIX = 'prepared_'
+
+/** Default shelf life in days for prepared foods (frozen/packaged) */
+export const PREPARED_FOOD_SHELF_LIFE_DAYS = 90
+
+/** Default unit for prepared food pantry items */
+export const PREPARED_FOOD_UNIT = 'unidad'
+
+/** Icon for prepared food items */
+export const PREPARED_FOOD_ICON = '🍱'
+
+/**
+ * Generates a pantry document ID for a prepared food item.
+ * Uses the normalized item name to allow merge behavior
+ * (same product purchased again updates the timestamp).
+ */
+export function preparedFoodId(normalizedName: string): string {
+  return `${PREPARED_FOOD_PREFIX}${normalizedName.replace(/\s+/g, '_')}`
 }
 
 /**

@@ -139,6 +139,34 @@ describe('createMapping', () => {
     })
   })
 
+  it('includes type field when provided', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockResolvedValue(undefined)
+    mockTimestampNow.mockReturnValue({ seconds: 1234 })
+
+    await createMapping('Pizza congelada', 'prepared_pizza_congelada', 'user-1', 'prepared')
+
+    expect(mockSetDoc).toHaveBeenCalledWith('doc-ref', {
+      canonicalId: 'prepared_pizza_congelada',
+      source: 'Pizza congelada',
+      normalizedSource: 'pizza congelada',
+      createdBy: 'user-1',
+      createdAt: { seconds: 1234 },
+      type: 'prepared',
+    })
+  })
+
+  it('omits type field when not provided', async () => {
+    mockDoc.mockReturnValue('doc-ref')
+    mockSetDoc.mockResolvedValue(undefined)
+    mockTimestampNow.mockReturnValue({ seconds: 1234 })
+
+    await createMapping('Tomate', 'tomato', 'user-1')
+
+    const writtenData = mockSetDoc.mock.calls[0][1]
+    expect(writtenData).not.toHaveProperty('type')
+  })
+
   it('propagates error when setDoc fails', async () => {
     mockDoc.mockReturnValue('doc-ref')
     mockSetDoc.mockRejectedValue(new Error('permission-denied'))
