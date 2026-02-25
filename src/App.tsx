@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuthStore } from '@/stores/authStore'
+import { usePantryStore } from '@/stores/pantryStore'
 import MapItemsPage from '@/pages/MapItemsPage'
 import PantryPage from '@/pages/PantryPage'
 
@@ -41,6 +42,15 @@ function UserHeader() {
 
 function App() {
   const [view, setView] = useState<AppView>('home')
+  const user = useAuthStore((s) => s.user)
+  const subscribePantry = usePantryStore((s) => s.subscribe)
+  const unsubscribePantry = usePantryStore((s) => s.unsubscribe)
+
+  // Keep pantry subscription active across all tabs while user is logged in
+  useEffect(() => {
+    if (user) subscribePantry(user.uid)
+    return () => unsubscribePantry()
+  }, [user, subscribePantry, unsubscribePantry])
 
   return (
     <ProtectedRoute>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { CATEGORY_META, CATEGORY_COLORS, CATEGORY_ORDER } from '@/lib/categories'
@@ -12,6 +12,13 @@ const EXPIRY_BADGE: Record<ExpiryStatus, { label: string; className: string }> =
   expired: { label: 'Vencido', className: 'bg-red-100 text-red-700' },
 }
 
+const EXPIRY_OPTIONS: { value: ExpiryStatus | 'all'; label: string; dot?: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'fresh', label: 'Fresco', dot: 'bg-green-500' },
+  { value: 'expiring-soon', label: 'Por vencer', dot: 'bg-amber-500' },
+  { value: 'expired', label: 'Vencido', dot: 'bg-red-500' },
+]
+
 interface PantryPageProps {
   onNavigateToMap: () => void
 }
@@ -22,32 +29,42 @@ export default function PantryPage({ onNavigateToMap }: PantryPageProps) {
   const loading = usePantryStore((s) => s.loading)
   const error = usePantryStore((s) => s.error)
   const activeFilter = usePantryStore((s) => s.activeFilter)
+  const expiryFilter = usePantryStore((s) => s.expiryFilter)
   const subscribe = usePantryStore((s) => s.subscribe)
-  const unsubscribe = usePantryStore((s) => s.unsubscribe)
   const setFilter = usePantryStore((s) => s.setFilter)
+  const setExpiryFilter = usePantryStore((s) => s.setExpiryFilter)
 
-  useEffect(() => {
-    if (user) subscribe(user.uid)
-    return () => unsubscribe()
-  }, [user, subscribe, unsubscribe])
+  // Split items by type
+  const ingredients = useMemo(() => items.filter((i) => i.type !== 'prepared'), [items])
+  const preparedItems = useMemo(() => items.filter((i) => i.type === 'prepared'), [items])
 
-  const filteredItems = useMemo(() => {
-    if (activeFilter === 'all') return items
-    return items.filter((item) => item.category === activeFilter)
-  }, [items, activeFilter])
+  // Filter ingredients by category + expiry
+  const filteredIngredients = useMemo(() => {
+    let result = ingredients
+    if (activeFilter !== 'all') result = result.filter((i) => i.category === activeFilter)
+    if (expiryFilter !== 'all') result = result.filter((i) => i.expiryStatus === expiryFilter)
+    return result
+  }, [ingredients, activeFilter, expiryFilter])
 
+  // Filter prepared items by expiry only
+  const filteredPrepared = useMemo(() => {
+    if (expiryFilter === 'all') return preparedItems
+    return preparedItems.filter((i) => i.expiryStatus === expiryFilter)
+  }, [preparedItems, expiryFilter])
+
+  // Available categories (only those with items)
   const availableCategories = useMemo(() => {
-    const cats = new Set(items.map((item) => item.category))
+    const cats = new Set(ingredients.map((i) => i.category))
     return CATEGORY_ORDER.filter((cat) => cats.has(cat))
-  }, [items])
+  }, [ingredients])
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<IngredientCategory, number>()
-    for (const item of items) {
+    for (const item of ingredients) {
       counts.set(item.category, (counts.get(item.category) ?? 0) + 1)
     }
     return counts
-  }, [items])
+  }, [ingredients])
 
   if (loading) {
     return (
@@ -93,60 +110,96 @@ export default function PantryPage({ onNavigateToMap }: PantryPageProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-primary-dark">Despensa</h2>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             {items.length}
           </span>
         </div>
+        <ExpiryDropdown value={expiryFilter} onChange={setExpiryFilter} />
       </div>
 
-      {/* Category filter chips */}
-      <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
-        <button
-          type="button"
-          onClick={() => setFilter('all')}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            activeFilter === 'all'
-              ? 'bg-primary text-white'
-              : 'bg-surface-light text-primary-dark/60 hover:bg-primary/10'
-          }`}
-        >
-          Todos ({items.length})
-        </button>
-        {availableCategories.map((cat) => {
-          const meta = CATEGORY_META[cat]
-          const count = categoryCounts.get(cat) ?? 0
-          const isActive = activeFilter === cat
-          return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setFilter(isActive ? 'all' : cat)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                isActive
-                  ? 'bg-primary text-white'
-                  : `${CATEGORY_COLORS[cat] ?? ''} hover:opacity-80`
-              }`}
-            >
-              {meta.icon} {meta.label} ({count})
-            </button>
-          )
-        })}
-      </div>
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {/* Ingredientes section */}
+        {ingredients.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 pb-2">
+              <span className="text-base">🥬</span>
+              <h3 className="text-sm font-semibold text-primary-dark">Ingredientes</h3>
+              <span className="text-xs text-primary-dark/50">({ingredients.length})</span>
+            </div>
 
-      {/* Item list */}
-      <div className="flex-1 space-y-2 overflow-y-auto px-4 pb-4">
-        {filteredItems.map((item) => (
-          <PantryItemCard key={item.id} item={item} />
-        ))}
-        {filteredItems.length === 0 && (
-          <p className="py-6 text-center text-sm text-primary-dark/50">
-            Sin ingredientes en esta categoría
-          </p>
+            {/* Category filter chips */}
+            <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activeFilter === 'all'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-light text-primary-dark/60 hover:bg-primary/10'
+                }`}
+              >
+                Todos ({ingredients.length})
+              </button>
+              {availableCategories.map((cat) => {
+                const meta = CATEGORY_META[cat]
+                const count = categoryCounts.get(cat) ?? 0
+                const isActive = activeFilter === cat
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setFilter(isActive ? 'all' : cat)}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary text-white'
+                        : `${CATEGORY_COLORS[cat] ?? ''} hover:opacity-80`
+                    }`}
+                  >
+                    {meta.icon} {meta.label} ({count})
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Ingredient item cards */}
+            <div className="space-y-2">
+              {filteredIngredients.map((item) => (
+                <PantryItemCard key={item.id} item={item} />
+              ))}
+              {filteredIngredients.length === 0 && (
+                <p className="py-4 text-center text-sm text-primary-dark/50">
+                  Sin ingredientes con estos filtros
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Comidas preparadas section */}
+        {preparedItems.length > 0 && (
+          <section className={ingredients.length > 0 ? 'mt-6' : ''}>
+            <div className="flex items-center gap-2 pb-3">
+              <span className="text-base">🍱</span>
+              <h3 className="text-sm font-semibold text-primary-dark">Comidas preparadas</h3>
+              <span className="text-xs text-primary-dark/50">({preparedItems.length})</span>
+            </div>
+
+            <div className="space-y-2">
+              {filteredPrepared.map((item) => (
+                <PantryItemCard key={item.id} item={item} />
+              ))}
+              {filteredPrepared.length === 0 && (
+                <p className="py-4 text-center text-sm text-primary-dark/50">
+                  Sin comidas con estos filtros
+                </p>
+              )}
+            </div>
+          </section>
         )}
       </div>
     </div>
@@ -168,6 +221,65 @@ function PantryItemCard({ item }: { item: EnrichedPantryItem }) {
       <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${badge.className}`}>
         {badge.label}
       </span>
+    </div>
+  )
+}
+
+function ExpiryDropdown({
+  value,
+  onChange,
+}: {
+  value: ExpiryStatus | 'all'
+  onChange: (v: ExpiryStatus | 'all') => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
+
+  const current = EXPIRY_OPTIONS.find((o) => o.value === value) ?? EXPIRY_OPTIONS[0]
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        data-testid="expiry-dropdown-trigger"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 rounded-full border border-primary/20 px-3 py-1.5 text-xs font-medium text-primary-dark/70 transition-colors hover:border-primary/40"
+      >
+        {current.dot && <span className={`inline-block h-2 w-2 rounded-full ${current.dot}`} />}
+        {current.label}
+        <span className={`text-[10px] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-10 mt-1 w-36 rounded-lg border border-primary/10 bg-surface-light py-1 shadow-lg">
+          {EXPIRY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-primary/5 ${
+                value === opt.value ? 'font-semibold text-primary' : 'text-primary-dark/70'
+              }`}
+            >
+              {opt.dot ? (
+                <span className={`inline-block h-2 w-2 rounded-full ${opt.dot}`} />
+              ) : (
+                <span className="inline-block h-2 w-2" />
+              )}
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

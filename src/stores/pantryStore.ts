@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { CanonicalIngredient, IngredientCategory } from '@/types/ingredient'
-import type { PantryItem, EnrichedPantryItem } from '@/types/pantry'
+import type { PantryItem, EnrichedPantryItem, ExpiryStatus } from '@/types/pantry'
 import { subscribeToPantry } from '@/services/pantry'
 import { getCanonicalIngredients } from '@/services/ingredients'
 import { computeExpiryStatus } from '@/lib/expiry'
@@ -13,14 +13,17 @@ interface PantryState {
   loading: boolean
   error: string | null
   activeFilter: IngredientCategory | 'all'
+  expiryFilter: ExpiryStatus | 'all'
 
   subscribe: (userId: string) => void
   unsubscribe: () => void
   setFilter: (filter: IngredientCategory | 'all') => void
+  setExpiryFilter: (filter: ExpiryStatus | 'all') => void
 }
 
 let _unsubscribe: (() => void) | null = null
 let _ingredientMap: Map<string, CanonicalIngredient> | null = null
+let _subscribingUserId: string | null = null
 
 function enrichItems(items: PantryItem[]): EnrichedPantryItem[] {
   const map = _ingredientMap
@@ -48,11 +51,13 @@ export const usePantryStore = create<PantryState>((set) => ({
   loading: true,
   error: null,
   activeFilter: 'all',
+  expiryFilter: 'all',
 
   subscribe: async (userId: string) => {
     // Guard against double subscription
     if (_unsubscribe) return
 
+    _subscribingUserId = userId
     set({ loading: true, error: null })
 
     try {
@@ -62,7 +67,10 @@ export const usePantryStore = create<PantryState>((set) => ({
         _ingredientMap = new Map(ingredients.map((i) => [i.id, i]))
       }
 
-      // Then attach the real-time listener
+      // Bail if unsubscribe was called while we were fetching
+      if (_subscribingUserId !== userId) return
+
+      // Attach the real-time listener
       _unsubscribe = subscribeToPantry(
         userId,
         (items) => {
@@ -81,6 +89,7 @@ export const usePantryStore = create<PantryState>((set) => ({
   },
 
   unsubscribe: () => {
+    _subscribingUserId = null
     if (_unsubscribe) {
       _unsubscribe()
       _unsubscribe = null
@@ -88,4 +97,5 @@ export const usePantryStore = create<PantryState>((set) => ({
   },
 
   setFilter: (filter) => set({ activeFilter: filter }),
+  setExpiryFilter: (filter) => set({ expiryFilter: filter }),
 }))
