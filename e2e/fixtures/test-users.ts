@@ -1,7 +1,6 @@
 export const TEST_USER_PASSWORD = 'gustify-staging-test-2026'
 
 export interface TestUser {
-  uid: string
   email: string
   displayName: string
   photoURL: string
@@ -31,15 +30,14 @@ export interface TestUser {
 
 export const TEST_USERS = {
   principiante: {
-    uid: 'test-principiante-001',
-    email: 'test-principiante@gustify-e2e.com',
-    displayName: 'Ana Principiante',
-    photoURL: 'https://ui-avatars.com/api/?name=Ana+P&background=4a7c59&color=fff',
+    email: 'alice@boletapp.test',
+    displayName: 'Alice Principiante',
+    photoURL: 'https://ui-avatars.com/api/?name=Alice+P&background=4a7c59&color=fff',
     firestoreDoc: {
       profile: {
-        name: 'Ana Principiante',
-        email: 'test-principiante@gustify-e2e.com',
-        photoUrl: 'https://ui-avatars.com/api/?name=Ana+P&background=4a7c59&color=fff',
+        name: 'Alice Principiante',
+        email: 'alice@boletapp.test',
+        photoUrl: 'https://ui-avatars.com/api/?name=Alice+P&background=4a7c59&color=fff',
       },
       cookingProfile: {
         dietPrefs: [],
@@ -56,15 +54,14 @@ export const TEST_USERS = {
   },
 
   comodo: {
-    uid: 'test-comodo-001',
-    email: 'test-comodo@gustify-e2e.com',
-    displayName: 'Bruno Cómodo',
-    photoURL: 'https://ui-avatars.com/api/?name=Bruno+C&background=5b8fa8&color=fff',
+    email: 'bob@boletapp.test',
+    displayName: 'Bob Cómodo',
+    photoURL: 'https://ui-avatars.com/api/?name=Bob+C&background=5b8fa8&color=fff',
     firestoreDoc: {
       profile: {
-        name: 'Bruno Cómodo',
-        email: 'test-comodo@gustify-e2e.com',
-        photoUrl: 'https://ui-avatars.com/api/?name=Bruno+C&background=5b8fa8&color=fff',
+        name: 'Bob Cómodo',
+        email: 'bob@boletapp.test',
+        photoUrl: 'https://ui-avatars.com/api/?name=Bob+C&background=5b8fa8&color=fff',
       },
       cookingProfile: {
         dietPrefs: ['Sin gluten'],
@@ -84,15 +81,14 @@ export const TEST_USERS = {
   },
 
   aventurero: {
-    uid: 'test-aventurero-001',
-    email: 'test-aventurero@gustify-e2e.com',
-    displayName: 'Carla Aventurera',
-    photoURL: 'https://ui-avatars.com/api/?name=Carla+A&background=e8a87c&color=fff',
+    email: 'charlie@boletapp.test',
+    displayName: 'Charlie Aventurero',
+    photoURL: 'https://ui-avatars.com/api/?name=Charlie+A&background=e8a87c&color=fff',
     firestoreDoc: {
       profile: {
-        name: 'Carla Aventurera',
-        email: 'test-aventurero@gustify-e2e.com',
-        photoUrl: 'https://ui-avatars.com/api/?name=Carla+A&background=e8a87c&color=fff',
+        name: 'Charlie Aventurero',
+        email: 'charlie@boletapp.test',
+        photoUrl: 'https://ui-avatars.com/api/?name=Charlie+A&background=e8a87c&color=fff',
       },
       cookingProfile: {
         dietPrefs: [],
@@ -114,15 +110,14 @@ export const TEST_USERS = {
   },
 
   avanzado: {
-    uid: 'test-avanzado-001',
-    email: 'test-avanzado@gustify-e2e.com',
-    displayName: 'Diego Avanzado',
-    photoURL: 'https://ui-avatars.com/api/?name=Diego+A&background=35593f&color=fff',
+    email: 'diana@boletapp.test',
+    displayName: 'Diana Avanzada',
+    photoURL: 'https://ui-avatars.com/api/?name=Diana+A&background=35593f&color=fff',
     firestoreDoc: {
       profile: {
-        name: 'Diego Avanzado',
-        email: 'test-avanzado@gustify-e2e.com',
-        photoUrl: 'https://ui-avatars.com/api/?name=Diego+A&background=35593f&color=fff',
+        name: 'Diana Avanzada',
+        email: 'diana@boletapp.test',
+        photoUrl: 'https://ui-avatars.com/api/?name=Diana+A&background=35593f&color=fff',
       },
       cookingProfile: {
         dietPrefs: ['Vegetariano'],

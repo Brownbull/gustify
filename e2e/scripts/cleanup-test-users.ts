@@ -19,36 +19,42 @@ const app = initializeApp({
 const adminAuth = getAuth(app)
 const adminDb = getFirestore(app)
 
-async function deleteUser(key: string, uid: string) {
+async function cleanupUser(key: string, email: string) {
+  // Look up UID by email
+  let uid: string
   try {
-    await adminAuth.deleteUser(uid)
-    console.log(`  Auth user ${uid} deleted`)
+    const userRecord = await adminAuth.getUserByEmail(email)
+    uid = userRecord.uid
+    console.log(`  Found auth user ${uid} for ${email}`)
   } catch (e: any) {
     if (e.code === 'auth/user-not-found') {
-      console.log(`  Auth user ${uid} not found, skipping`)
-    } else {
-      throw e
+      console.log(`  Auth user for ${email} not found, skipping`)
+      return
     }
+    throw e
   }
 
+  // Only delete Gustify Firestore doc — do NOT delete Auth user (shared with Boletapp)
   try {
     await adminDb.collection('users').doc(uid).delete()
     console.log(`  Firestore doc users/${uid} deleted`)
   } catch (e) {
     console.log(`  Firestore doc users/${uid} delete failed:`, e)
   }
+
+  console.log(`  Auth user preserved (shared with Boletapp)`)
 }
 
 async function main() {
-  console.log('Cleaning up test users from staging Firebase...\n')
+  console.log('Cleaning up Gustify test user data from staging Firebase...\n')
 
   for (const [key, userData] of Object.entries(TEST_USERS)) {
     console.log(`[${key}]`)
-    await deleteUser(key, userData.uid)
+    await cleanupUser(key, userData.email)
     console.log()
   }
 
-  console.log('Done. All test users cleaned up.')
+  console.log('Done. Gustify Firestore docs removed, Auth users preserved.')
   process.exit(0)
 }
 

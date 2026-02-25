@@ -20,31 +20,31 @@ const adminAuth = getAuth(app)
 const adminDb = getFirestore(app)
 
 async function seedUser(key: string, userData: TestUser) {
+  // Look up existing Boletapp user by email
+  let uid: string
   try {
-    await adminAuth.getUser(userData.uid)
-    console.log(`  Auth user ${userData.uid} already exists, updating...`)
-    await adminAuth.updateUser(userData.uid, {
-      email: userData.email,
-      password: TEST_USER_PASSWORD,
-      displayName: userData.displayName,
-      photoURL: userData.photoURL,
-    })
+    const userRecord = await adminAuth.getUserByEmail(userData.email)
+    uid = userRecord.uid
+    console.log(`  Found auth user ${uid} for ${userData.email}`)
   } catch (e: any) {
     if (e.code === 'auth/user-not-found') {
-      console.log(`  Creating auth user ${userData.uid}...`)
-      await adminAuth.createUser({
-        uid: userData.uid,
-        email: userData.email,
-        password: TEST_USER_PASSWORD,
-        displayName: userData.displayName,
-        photoURL: userData.photoURL,
-      })
-    } else {
-      throw e
+      console.error(`  ERROR: Auth user not found for ${userData.email}`)
+      console.error(`  Run Boletapp's staging seed first: cd ../boletapp && npm run staging:seed`)
+      return
     }
+    throw e
   }
 
-  const docRef = adminDb.collection('users').doc(userData.uid)
+  // Set known password so dev test menu can use email/password login
+  await adminAuth.updateUser(uid, {
+    password: TEST_USER_PASSWORD,
+    displayName: userData.displayName,
+    photoURL: userData.photoURL,
+  })
+  console.log(`  Updated auth user ${uid} with Gustify display name and password`)
+
+  // Write Gustify cooking profile to Firestore
+  const docRef = adminDb.collection('users').doc(uid)
   const docData = {
     ...userData.firestoreDoc,
     profile: {
@@ -53,11 +53,11 @@ async function seedUser(key: string, userData: TestUser) {
     },
   }
   await docRef.set(docData, { merge: true })
-  console.log(`  Firestore doc users/${userData.uid} written`)
+  console.log(`  Firestore doc users/${uid} written`)
 }
 
 async function main() {
-  console.log('Seeding test users into staging Firebase...\n')
+  console.log('Seeding Gustify test users (using Boletapp staging accounts)...\n')
 
   for (const [key, userData] of Object.entries(TEST_USERS)) {
     console.log(`[${key}]`)

@@ -3,10 +3,10 @@ import { test, expect } from '../../fixtures/auth.js'
 const RESULTS_DIR = 'test-results/auth-dev-test-user-menu'
 
 const TEST_USERS = [
-  { key: 'principiante', name: 'Ana Principiante', tier: 'Principiante' },
-  { key: 'comodo', name: 'Bruno Cómodo', tier: 'Cómodo' },
-  { key: 'aventurero', name: 'Carla Aventurera', tier: 'Aventurero' },
-  { key: 'avanzado', name: 'Diego Avanzado', tier: 'Avanzado' },
+  { key: 'principiante', name: 'Alice Principiante', tier: 'Principiante' },
+  { key: 'comodo', name: 'Bob Cómodo', tier: 'Cómodo' },
+  { key: 'aventurero', name: 'Charlie Aventurero', tier: 'Aventurero' },
+  { key: 'avanzado', name: 'Diana Avanzada', tier: 'Avanzado' },
 ] as const
 
 test.describe('Dev test user menu', () => {

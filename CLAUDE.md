@@ -128,7 +128,12 @@ npm run dev                # http://localhost:5175 → connects to boletapp-stag
 ```
 
 ### Important: Firestore rules
-`firestore.rules` is a **reference file only** covering Gustify paths. It **must not be deployed** to the shared Firebase projects — doing so would overwrite Gastify's rules. Deploy rules via Firebase Console or coordinate with the Gastify project.
+- `firestore.rules` — **reference file** covering Gustify paths only. Do NOT deploy alone — it would overwrite Gastify's rules.
+- `firestore.staging.rules` — **combined rules** (Boletapp + Gustify) for the staging project. Deploy with:
+  ```bash
+  firebase deploy --only firestore:rules --project boletapp-staging --config firebase.staging.json
+  ```
+- Production rules must be coordinated with the Gastify project via Firebase Console.
 
 ### Deploying
 ```bash
@@ -152,14 +157,16 @@ npm run e2e:headed         # run with visible browser
 npm run e2e:ui             # interactive Playwright UI
 ```
 
-**Test users (seeded in staging):**
+**Test users (shared with Boletapp staging):**
 
-| User | UID | Tier | Notes |
-|------|-----|------|-------|
-| Ana Principiante | `test-principiante-001` | Principiante | New user |
-| Bruno Comodo | `test-comodo-001` | Comodo | Gluten-free, shellfish allergy |
-| Carla Aventurera | `test-aventurero-001` | Aventurero | Dark theme |
-| Diego Avanzado | `test-avanzado-001` | Avanzado | Vegetarian |
+| User | Email | Tier | Notes |
+|------|-------|------|-------|
+| Alice Principiante | `alice@boletapp.test` | Principiante | New user |
+| Bob Cómodo | `bob@boletapp.test` | Cómodo | Gluten-free, shellfish allergy |
+| Charlie Aventurero | `charlie@boletapp.test` | Aventurero | Dark theme |
+| Diana Avanzada | `diana@boletapp.test` | Avanzado | Vegetarian |
+
+UIDs are Firebase-assigned (resolved by email at runtime). Auth users are owned by Boletapp — Gustify only manages Firestore `users/{uid}` docs.
 
 **Results folder** (`test-results/`, gitignored):
 - `html-report/` — HTML test report
@@ -225,12 +232,14 @@ npm run seed:ingredients    # seed 70 canonical ingredients to staging Firestore
 | `src/pages/MapItemsPage.tsx` | Item mapping page — unmapped items list, inline picker, summary cards |
 | `src/test/setup.ts` | Vitest global test setup — registers `@testing-library/jest-dom` matchers |
 | `playwright.config.ts` | Playwright E2E config — staging env, mobile viewport, sequential workers |
-| `e2e/fixtures/test-users.ts` | 4 test user personas (Principiante → Avanzado) with Firestore docs |
-| `e2e/fixtures/auth.ts` | Playwright fixture: `loginAs()`, `logout()` via custom tokens |
-| `e2e/scripts/seed-test-users.ts` | Seed test users to staging Firebase (Auth + Firestore) |
+| `e2e/fixtures/test-users.ts` | 4 test user personas (shared with Boletapp staging) with Firestore docs |
+| `e2e/fixtures/auth.ts` | Playwright fixture: `loginAs()`, `logout()` via custom tokens (UID resolved by email) |
+| `e2e/scripts/seed-test-users.ts` | Set passwords on Boletapp staging users and write Gustify Firestore docs |
 | `firebase.json` | Firebase Hosting config |
+| `firebase.staging.json` | Firebase config for staging rules deployment |
 | `.firebaserc` | Firebase project alias — `default` maps to `boletapp-d609f` |
-| `firestore.rules` | Firestore security rules — EMULATOR ONLY, do not deploy to production |
+| `firestore.rules` | Firestore security rules — Gustify paths only, reference file |
+| `firestore.staging.rules` | Combined Firestore rules (Boletapp + Gustify) for staging |
 | `.env.example` | Template for `VITE_FIREBASE_*` env vars |
 | `.env` | Staging Firebase credentials (boletapp-staging) — not committed |
 | `.env.production` | Production Firebase credentials (boletapp-d609f) — not committed |

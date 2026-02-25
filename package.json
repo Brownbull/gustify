@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Gustify - Tu compañero de cocina",
   "scripts": {
-    "dev": "vite",
+    "dev": "bash -c 'for v in $(env | grep ^VITE_ | cut -d= -f1); do unset $v; done && vite'",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",

@@ -4,13 +4,16 @@ import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
 
-/** User key → UID mapping (mirrors e2e/fixtures/test-users.ts) */
-const TEST_USER_UIDS: Record<string, string> = {
-  principiante: 'test-principiante-001',
-  comodo: 'test-comodo-001',
-  aventurero: 'test-aventurero-001',
-  avanzado: 'test-avanzado-001',
+/** User key → email mapping (shared Boletapp staging accounts) */
+const TEST_USER_EMAILS: Record<string, string> = {
+  principiante: 'alice@boletapp.test',
+  comodo: 'bob@boletapp.test',
+  aventurero: 'charlie@boletapp.test',
+  avanzado: 'diana@boletapp.test',
 }
+
+/** Cache resolved UIDs to avoid repeated Firebase Admin lookups */
+const uidCache = new Map<string, string>()
 
 let adminAuth: import('firebase-admin/auth').Auth | null = null
 
@@ -35,6 +38,16 @@ function getAdminAuth(): import('firebase-admin/auth').Auth {
   return adminAuth
 }
 
+async function resolveUid(auth: import('firebase-admin/auth').Auth, userKey: string): Promise<string> {
+  const cached = uidCache.get(userKey)
+  if (cached) return cached
+
+  const email = TEST_USER_EMAILS[userKey]
+  const userRecord = await auth.getUserByEmail(email)
+  uidCache.set(userKey, userRecord.uid)
+  return userRecord.uid
+}
+
 /**
  * Vite plugin that exposes a dev-only endpoint for generating Firebase custom tokens.
  * Active during dev server only (configureServer is not called in production builds).
@@ -48,19 +61,20 @@ export function devAuthPlugin(): Plugin {
         if (!match) return next()
 
         const userKey = match[1]
-        const uid = TEST_USER_UIDS[userKey]
+        const email = TEST_USER_EMAILS[userKey]
 
-        if (!uid) {
+        if (!email) {
           res.statusCode = 404
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify({
-            error: `Unknown user key: ${userKey}. Valid keys: ${Object.keys(TEST_USER_UIDS).join(', ')}`,
+            error: `Unknown user key: ${userKey}. Valid keys: ${Object.keys(TEST_USER_EMAILS).join(', ')}`,
           }))
           return
         }
 
         try {
           const auth = getAdminAuth()
+          const uid = await resolveUid(auth, userKey)
           const token = await auth.createCustomToken(uid)
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify({ token }))
