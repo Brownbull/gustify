@@ -9,6 +9,10 @@ dist/
 
 .firebase/
 firebase-debug.log
+
+# Cloud Functions build output + local env
+functions/lib/
+functions/.env
 firestore-debug.log
 ui-debug.log
 emulator-data/
