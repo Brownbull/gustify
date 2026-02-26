@@ -4,8 +4,9 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import MapItemsPage from '@/pages/MapItemsPage'
 import PantryPage from '@/pages/PantryPage'
+import RecipesPage from '@/pages/RecipesPage'
 
-type AppView = 'home' | 'pantry' | 'mapItems'
+type AppView = 'home' | 'pantry' | 'recipes' | 'mapItems'
 
 function UserHeader() {
   const user = useAuthStore((s) => s.user)
@@ -63,6 +64,8 @@ function App() {
             </div>
           ) : view === 'pantry' ? (
             <PantryPage onNavigateToMap={() => setView('mapItems')} />
+          ) : view === 'recipes' ? (
+            <RecipesPage onNavigateToPantry={() => setView('pantry')} />
           ) : (
             <MapItemsPage />
           )}
@@ -90,6 +93,17 @@ function App() {
               }`}
             >
               Despensa
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('recipes')}
+              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                view === 'recipes'
+                  ? 'text-primary'
+                  : 'text-primary-dark/40 hover:text-primary-dark/60'
+              }`}
+            >
+              Recetas
             </button>
             <button
               type="button"
