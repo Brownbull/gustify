@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useMappingStore } from '@/stores/mappingStore'
 import IngredientPickerModal from '@/components/IngredientPickerModal'
 import type { CanonicalIngredient } from '@/types/ingredient'
+import type { CanonicalPreparedFood } from '@/types/prepared-food'
 
 export default function MapItemsPage() {
   const user = useAuthStore((s) => s.user)
@@ -16,7 +17,9 @@ export default function MapItemsPage() {
   const loadItems = useMappingStore((s) => s.loadItems)
   const preparedCount = useMappingStore((s) => s.preparedCount)
   const mapItem = useMappingStore((s) => s.mapItem)
-  const markPrepared = useMappingStore((s) => s.markPrepared)
+  const mapPreparedFood = useMappingStore((s) => s.mapPreparedFood)
+  const markUnknownIngredient = useMappingStore((s) => s.markUnknownIngredient)
+  const markUnknownPrepared = useMappingStore((s) => s.markUnknownPrepared)
   const skipItem = useMappingStore((s) => s.skipItem)
   const restoreItem = useMappingStore((s) => s.restoreItem)
   const setSelectedItem = useMappingStore((s) => s.setSelectedItem)
@@ -33,9 +36,19 @@ export default function MapItemsPage() {
     mapItem(selectedItem, ingredient.id, ingredient, user.uid)
   }
 
-  function handleMarkPrepared() {
+  function handleSelectPreparedFood(preparedFood: CanonicalPreparedFood) {
     if (!selectedItem || !user) return
-    markPrepared(selectedItem, user.uid)
+    mapPreparedFood(selectedItem, preparedFood, user.uid)
+  }
+
+  function handleUnknownIngredient() {
+    if (!selectedItem || !user) return
+    markUnknownIngredient(selectedItem, user.uid)
+  }
+
+  function handleUnknownPrepared() {
+    if (!selectedItem || !user) return
+    markUnknownPrepared(selectedItem, user.uid)
   }
 
   function handleSkip() {
@@ -176,8 +189,10 @@ export default function MapItemsPage() {
         <IngredientPickerModal
           item={selectedItem}
           onSelect={handleSelect}
+          onSelectPreparedFood={handleSelectPreparedFood}
           onSkip={handleSkip}
-          onMarkPrepared={handleMarkPrepared}
+          onMarkUnknownIngredient={handleUnknownIngredient}
+          onMarkUnknownPrepared={handleUnknownPrepared}
           onClose={() => setSelectedItem(null)}
         />
       )}

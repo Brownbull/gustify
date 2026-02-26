@@ -5,7 +5,9 @@ import type { ExtractedItem } from '@/services/gastify-transactions'
 
 const mockLoadItems = vi.fn()
 const mockMapItem = vi.fn()
-const mockMarkPrepared = vi.fn()
+const mockMapPreparedFood = vi.fn()
+const mockMarkUnknownIngredient = vi.fn()
+const mockMarkUnknownPrepared = vi.fn()
 const mockSkipItem = vi.fn()
 const mockRestoreItem = vi.fn()
 const mockSetSelectedItem = vi.fn()
@@ -13,11 +15,13 @@ const mockClearError = vi.fn()
 
 // Mock IngredientPickerModal (replaces inline picker)
 vi.mock('@/components/IngredientPickerModal', () => ({
-  default: ({ item, onSelect, onSkip, onMarkPrepared, onClose }: {
+  default: ({ item, onSelect, onSelectPreparedFood, onSkip, onMarkUnknownIngredient, onMarkUnknownPrepared, onClose }: {
     item: { originalName: string }
     onSelect: (ing: unknown) => void
+    onSelectPreparedFood: (pf: unknown) => void
     onSkip: () => void
-    onMarkPrepared: () => void
+    onMarkUnknownIngredient: () => void
+    onMarkUnknownPrepared: () => void
     onClose: () => void
   }) => (
     <div data-testid="ingredient-picker-modal">
@@ -25,7 +29,11 @@ vi.mock('@/components/IngredientPickerModal', () => ({
       <button onClick={() => onSelect({ id: 'tomato', names: { es: 'Tomate' } })}>
         Select Tomato
       </button>
-      <button onClick={onMarkPrepared}>Comida preparada</button>
+      <button onClick={() => onSelectPreparedFood({ id: 'pizza', names: { es: 'Pizza' } })}>
+        Select Prepared
+      </button>
+      <button onClick={onMarkUnknownIngredient}>Ingrediente desconocido</button>
+      <button onClick={onMarkUnknownPrepared}>Comida preparada desconocida</button>
       <button onClick={onSkip}>Omitir</button>
       <button onClick={onClose}>Cerrar</button>
     </div>
@@ -81,7 +89,9 @@ beforeEach(() => {
     selectedItem: null,
     loadItems: mockLoadItems,
     mapItem: mockMapItem,
-    markPrepared: mockMarkPrepared,
+    mapPreparedFood: mockMapPreparedFood,
+    markUnknownIngredient: mockMarkUnknownIngredient,
+    markUnknownPrepared: mockMarkUnknownPrepared,
     skipItem: mockSkipItem,
     restoreItem: mockRestoreItem,
     setSelectedItem: mockSetSelectedItem,
@@ -179,7 +189,7 @@ describe('MapItemsPage', () => {
     expect(screen.queryByTestId('ingredient-picker-modal')).not.toBeInTheDocument()
   })
 
-  it('calls markPrepared via modal', async () => {
+  it('calls mapPreparedFood via modal', async () => {
     const user = userEvent.setup()
     storeState = {
       ...storeState,
@@ -189,8 +199,12 @@ describe('MapItemsPage', () => {
 
     render(<MapItemsPage />)
 
-    await user.click(screen.getByText('Comida preparada'))
-    expect(mockMarkPrepared).toHaveBeenCalledWith(sampleItem, 'test-user')
+    await user.click(screen.getByText('Select Prepared'))
+    expect(mockMapPreparedFood).toHaveBeenCalledWith(
+      sampleItem,
+      { id: 'pizza', names: { es: 'Pizza' } },
+      'test-user',
+    )
   })
 
   it('shows Omitidos section when items are skipped', () => {

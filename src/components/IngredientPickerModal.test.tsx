@@ -3,13 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ExtractedItem } from '@/services/gastify-transactions'
 
-// Mock IngredientPicker to keep tests focused on modal behavior
+// Mock IngredientPicker and PreparedFoodPicker to keep tests focused on modal behavior
 vi.mock('./IngredientPicker', () => ({
-  default: ({ onSelect, onSkip, onMarkPrepared }: { onSelect: (ing: unknown) => void; onSkip: () => void; onMarkPrepared?: () => void }) => (
+  default: ({ onSelect }: { onSelect: (ing: unknown) => void }) => (
     <div data-testid="ingredient-picker">
       <button onClick={() => onSelect({ id: 'tomato' })}>Select</button>
-      <button onClick={onSkip}>Omitir</button>
-      {onMarkPrepared && <button onClick={onMarkPrepared}>Comida preparada</button>}
+    </div>
+  ),
+}))
+
+vi.mock('./PreparedFoodPicker', () => ({
+  default: ({ onSelect }: { onSelect: (pf: unknown) => void }) => (
+    <div data-testid="prepared-food-picker">
+      <button onClick={() => onSelect({ id: 'pizza' })}>Select Prepared</button>
     </div>
   ),
 }))
@@ -29,8 +35,10 @@ const sampleItem: ExtractedItem = {
 const defaultProps = {
   item: sampleItem,
   onSelect: vi.fn(),
+  onSelectPreparedFood: vi.fn(),
   onSkip: vi.fn(),
-  onMarkPrepared: vi.fn(),
+  onMarkUnknownIngredient: vi.fn(),
+  onMarkUnknownPrepared: vi.fn(),
   onClose: vi.fn(),
 }
 

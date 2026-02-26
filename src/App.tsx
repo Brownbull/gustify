@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuthStore } from '@/stores/authStore'
+import { usePantryStore } from '@/stores/pantryStore'
 import MapItemsPage from '@/pages/MapItemsPage'
+import PantryPage from '@/pages/PantryPage'
 
-type AppView = 'home' | 'mapItems'
+type AppView = 'home' | 'pantry' | 'mapItems'
 
 function UserHeader() {
   const user = useAuthStore((s) => s.user)
@@ -40,6 +42,15 @@ function UserHeader() {
 
 function App() {
   const [view, setView] = useState<AppView>('home')
+  const user = useAuthStore((s) => s.user)
+  const subscribePantry = usePantryStore((s) => s.subscribe)
+  const unsubscribePantry = usePantryStore((s) => s.unsubscribe)
+
+  // Keep pantry subscription active across all tabs while user is logged in
+  useEffect(() => {
+    if (user) subscribePantry(user.uid)
+    return () => unsubscribePantry()
+  }, [user, subscribePantry, unsubscribePantry])
 
   return (
     <ProtectedRoute>
@@ -50,6 +61,8 @@ function App() {
             <div className="flex flex-1 flex-col items-center justify-center p-4">
               <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
             </div>
+          ) : view === 'pantry' ? (
+            <PantryPage onNavigateToMap={() => setView('mapItems')} />
           ) : (
             <MapItemsPage />
           )}
@@ -66,6 +79,17 @@ function App() {
               }`}
             >
               Inicio
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('pantry')}
+              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                view === 'pantry'
+                  ? 'text-primary'
+                  : 'text-primary-dark/40 hover:text-primary-dark/60'
+              }`}
+            >
+              Despensa
             </button>
             <button
               type="button"

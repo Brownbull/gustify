@@ -31,6 +31,25 @@ export function preparedFoodId(normalizedName: string): string {
   return `${PREPARED_FOOD_PREFIX}${normalizedName.replace(/\s+/g, '_')}`
 }
 
+/** Prefix for unknown ingredient IDs in pantry */
+export const UNKNOWN_INGREDIENT_PREFIX = 'unknown_ing_'
+
+/** Prefix for unknown prepared food IDs in pantry */
+export const UNKNOWN_PREPARED_PREFIX = 'unknown_prep_'
+
+/** Default shelf life in days for unknown ingredients (conservative) */
+export const UNKNOWN_INGREDIENT_SHELF_LIFE_DAYS = 7
+
+/** Generates a pantry document ID for an unknown ingredient. */
+export function unknownIngredientId(normalizedName: string): string {
+  return `${UNKNOWN_INGREDIENT_PREFIX}${normalizedName.replace(/\s+/g, '_')}`
+}
+
+/** Generates a pantry document ID for an unknown prepared food. */
+export function unknownPreparedId(normalizedName: string): string {
+  return `${UNKNOWN_PREPARED_PREFIX}${normalizedName.replace(/\s+/g, '_')}`
+}
+
 /**
  * Gastify transaction categories that contain cooking-related items.
  * Used to filter out non-food purchases (e.g. cleaning supplies, toiletries).
