@@ -63,7 +63,6 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
       />,
       { wrapper: createWrapper() },
     )
@@ -86,7 +85,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -109,7 +108,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -131,7 +130,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -158,7 +157,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -183,7 +182,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={onSelect}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -211,7 +210,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={onSelect}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -234,7 +233,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -252,7 +251,7 @@ describe('IngredientPicker', () => {
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )
@@ -271,86 +270,13 @@ describe('IngredientPicker', () => {
     expect(screen.queryByRole('button', { name: /Asignar/ })).not.toBeInTheDocument()
   })
 
-  it('calls onSkip when Omitir button is clicked', async () => {
-    const user = userEvent.setup()
-    const onSkip = vi.fn()
-
-    render(
-      <IngredientPicker
-        onSelect={vi.fn()}
-        onSkip={onSkip}
-      />,
-      { wrapper: createWrapper() },
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Omitir')).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByText('Omitir'))
-
-    expect(onSkip).toHaveBeenCalledOnce()
-  })
-
-  it('renders Comida preparada button when onMarkPrepared is provided', async () => {
-    render(
-      <IngredientPicker
-        onSelect={vi.fn()}
-        onSkip={vi.fn()}
-        onMarkPrepared={vi.fn()}
-      />,
-      { wrapper: createWrapper() },
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText(/Comida preparada/)).toBeInTheDocument()
-    })
-  })
-
-  it('does not render Comida preparada button when onMarkPrepared is not provided', async () => {
-    render(
-      <IngredientPicker
-        onSelect={vi.fn()}
-        onSkip={vi.fn()}
-      />,
-      { wrapper: createWrapper() },
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Omitir')).toBeInTheDocument()
-    })
-    expect(screen.queryByText(/Comida preparada/)).not.toBeInTheDocument()
-  })
-
-  it('calls onMarkPrepared when Comida preparada button is clicked', async () => {
-    const user = userEvent.setup()
-    const onMarkPrepared = vi.fn()
-
-    render(
-      <IngredientPicker
-        onSelect={vi.fn()}
-        onSkip={vi.fn()}
-        onMarkPrepared={onMarkPrepared}
-      />,
-      { wrapper: createWrapper() },
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText(/Comida preparada/)).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByText(/Comida preparada/))
-
-    expect(onMarkPrepared).toHaveBeenCalledOnce()
-  })
-
   it('renders error message when loading fails', async () => {
     mockGetCanonicalIngredients.mockRejectedValue(new Error('network'))
 
     render(
       <IngredientPicker
         onSelect={vi.fn()}
-        onSkip={vi.fn()}
+
       />,
       { wrapper: createWrapper() },
     )

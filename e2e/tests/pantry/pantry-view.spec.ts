@@ -17,8 +17,9 @@ const SEED_ITEMS = [
   // Expired
   { canonicalId: 'ground_beef', name: 'Carne molida', quantity: 0.5, unit: 'kg', expiryDays: -1, purchasedDays: -3 },
   { canonicalId: 'avocado', name: 'Palta', quantity: 2, unit: 'units', expiryDays: -2, purchasedDays: -6 },
-  // Prepared food
-  { canonicalId: 'prepared_pizza_congelada', name: 'Pizza congelada', quantity: 1, unit: 'unidad', expiryDays: 85, purchasedDays: -5, type: 'prepared' as const },
+  // Prepared food — one with cuisine, one without
+  { canonicalId: 'prepared_pizza_congelada', name: 'Pizza congelada', quantity: 1, unit: 'unidad', expiryDays: 85, purchasedDays: -5, type: 'prepared' as const, cuisine: 'mediterranean' as const },
+  { canonicalId: 'prepared_empanadas', name: 'Empanadas', quantity: 6, unit: 'unidad', expiryDays: 30, purchasedDays: -2, type: 'prepared' as const },
 ]
 
 async function waitForPantry(page: Page) {
@@ -74,6 +75,7 @@ test.describe('Pantry view', () => {
         status: 'available',
       }
       if ('type' in item && item.type) data.type = item.type
+      if ('cuisine' in item && item.cuisine) data.cuisine = item.cuisine
       batch.set(docRef, data)
     }
     await batch.commit()
@@ -87,7 +89,7 @@ test.describe('Pantry view', () => {
     console.log(`Cleared Diana's pantry (${diana.uid})`)
   })
 
-  test('displays pantry items with expiry badges', async ({ page, loginAs }) => {
+  test('displays pantry with segmented control and expiry badges', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
     await page.getByRole('button', { name: 'Despensa' }).click()
@@ -95,33 +97,45 @@ test.describe('Pantry view', () => {
 
     await page.screenshot({ path: `${RESULTS_DIR}/01-pantry-loaded.png`, fullPage: true })
 
-    // Verify the Ingredientes section header
-    await expect(page.getByText('Ingredientes')).toBeVisible()
+    // Verify the segmented control is visible with both tabs
+    const tabs = page.locator('[data-testid="pantry-tabs"]')
+    await expect(tabs).toBeVisible()
+    await expect(tabs.getByRole('button', { name: /Ingredientes/i })).toBeVisible()
+    await expect(tabs.getByRole('button', { name: /Preparadas/i })).toBeVisible()
 
-    // Verify expiry badges are present — all three types
+    // Default tab is Ingredientes — verify expiry badges are present
     await expect(page.getByText('Vencido').first()).toBeVisible()
     await expect(page.getByText('Por vencer').first()).toBeVisible()
     await expect(page.getByText('Fresco').first()).toBeVisible()
 
-    // Verify some known item names
+    // Verify some known ingredient names
     await expect(page.getByText('Huevos')).toBeVisible()
     await expect(page.getByText('Pechuga de pollo')).toBeVisible()
     await expect(page.getByText('Carne molida')).toBeVisible()
+
+    // Prepared food should NOT be visible on ingredients tab
+    await expect(page.getByText('Pizza congelada')).not.toBeVisible()
   })
 
-  test('shows prepared food in separate section', async ({ page, loginAs }) => {
+  test('shows prepared food via segmented control', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
     await page.getByRole('button', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
-    // Verify the Comidas preparadas section header
-    await expect(page.getByText('Comidas preparadas')).toBeVisible()
+    // Switch to Preparadas tab
+    const tabs = page.locator('[data-testid="pantry-tabs"]')
+    await tabs.getByRole('button', { name: /Preparadas/i }).click()
 
-    // Pizza congelada should be in the prepared section
+    await page.screenshot({ path: `${RESULTS_DIR}/02-prepared-tab.png`, fullPage: true })
+
+    // Prepared items should be visible
     await expect(page.getByText('Pizza congelada')).toBeVisible()
+    await expect(page.getByText('Empanadas')).toBeVisible()
 
-    await page.screenshot({ path: `${RESULTS_DIR}/02-prepared-section.png`, fullPage: true })
+    // Ingredients should NOT be visible
+    await expect(page.getByText('Huevos')).not.toBeVisible()
+    await expect(page.getByText('Arroz')).not.toBeVisible()
   })
 
   test('category chips filter the ingredient list', async ({ page, loginAs }) => {
@@ -130,7 +144,7 @@ test.describe('Pantry view', () => {
     await page.getByRole('button', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
-    // Count items before filtering
+    // Count items before filtering (only ingredients visible on default tab)
     const allCards = page.locator('.rounded-lg.border')
     const initialCount = await allCards.count()
     console.log('Initial item count:', initialCount)
@@ -142,9 +156,7 @@ test.describe('Pantry view', () => {
 
     await page.screenshot({ path: `${RESULTS_DIR}/03-filtered-by-protein.png`, fullPage: true })
 
-    // Should show fewer ingredient items
-    // Protein items: chicken_breast, eggs, ground_beef = 3
-    // Plus pizza congelada in prepared section = 4 total cards
+    // Should show fewer ingredient items (only protein items)
     const filteredCount = await allCards.count()
     console.log('Filtered item count:', filteredCount)
     expect(filteredCount).toBeLessThan(initialCount)
@@ -155,7 +167,7 @@ test.describe('Pantry view', () => {
     expect(resetCount).toBe(initialCount)
   })
 
-  test('expiry dropdown filters both sections', async ({ page, loginAs }) => {
+  test('expiry dropdown filters active tab', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
     await page.getByRole('button', { name: 'Despensa' }).click()
@@ -188,13 +200,71 @@ test.describe('Pantry view', () => {
     await expect(page.getByText('Arroz')).toBeVisible()
   })
 
-  test('empty state shows for user with no pantry data', async ({ page, loginAs, logout }) => {
+  test('cuisine chips filter prepared food list', async ({ page, loginAs }) => {
+    await loginAs('comodo')
+
+    await page.getByRole('button', { name: 'Despensa' }).click()
+    await waitForPantry(page)
+
+    // Switch to Preparadas tab
+    const tabs = page.locator('[data-testid="pantry-tabs"]')
+    await tabs.getByRole('button', { name: /Preparadas/i }).click()
+
+    // Both prepared items visible initially
+    await expect(page.getByText('Pizza congelada')).toBeVisible()
+    await expect(page.getByText('Empanadas')).toBeVisible()
+
+    // Click Mediterránea cuisine filter chip (has count, not the card's cuisine tag)
+    const medChip = page.getByRole('button', { name: /Mediterránea \(\d+\)/i })
+    await expect(medChip).toBeVisible()
+    await medChip.click()
+
+    await page.screenshot({ path: `${RESULTS_DIR}/05-filtered-by-cuisine.png`, fullPage: true })
+
+    // Only Pizza congelada (mediterranean) should be visible
+    await expect(page.getByText('Pizza congelada')).toBeVisible()
+    await expect(page.getByText('Empanadas')).not.toBeVisible()
+
+    // Deselect to show all again
+    await medChip.click()
+    await expect(page.getByText('Empanadas')).toBeVisible()
+  })
+
+  test('assign cuisine to prepared food item', async ({ page, loginAs }) => {
+    await loginAs('comodo')
+
+    await page.getByRole('button', { name: 'Despensa' }).click()
+    await waitForPantry(page)
+
+    // Switch to Preparadas tab
+    const tabs = page.locator('[data-testid="pantry-tabs"]')
+    await tabs.getByRole('button', { name: /Preparadas/i }).click()
+
+    // Find the Empanadas card — it should show "Sin clasificar" (no cuisine assigned)
+    const empanadasCard = page.locator('.rounded-lg.border', { hasText: 'Empanadas' })
+    await expect(empanadasCard).toBeVisible()
+    const cuisineTag = empanadasCard.locator('[data-testid="cuisine-tag"]')
+    await expect(cuisineTag).toContainText('Sin clasificar')
+
+    // Click cuisine tag to open picker
+    await cuisineTag.click()
+
+    // Select "Chilena"
+    await page.getByRole('button', { name: /Chilena/i }).last().click()
+
+    await page.screenshot({ path: `${RESULTS_DIR}/06-cuisine-assigned.png`, fullPage: true })
+
+    // Wait for the update to propagate via real-time listener
+    await expect(empanadasCard.locator('[data-testid="cuisine-tag"]')).toContainText('Chilena', { timeout: 10000 })
+  })
+
+  test('empty state shows for user with no pantry data', async ({ page, loginAs }) => {
     await loginAs('avanzado')
 
     await page.getByRole('button', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
-    await page.screenshot({ path: `${RESULTS_DIR}/05-empty-state.png`, fullPage: true })
+    await page.screenshot({ path: `${RESULTS_DIR}/07-empty-state.png`, fullPage: true })
 
     // Should show empty state
     await expect(page.getByText('Tu despensa está vacía')).toBeVisible()
@@ -204,6 +274,6 @@ test.describe('Pantry view', () => {
     await page.getByRole('button', { name: 'Ir a Mapear' }).click()
     await expect(page.getByText('Mapear Ingredientes')).toBeVisible({ timeout: 20000 })
 
-    await page.screenshot({ path: `${RESULTS_DIR}/06-navigate-to-map.png`, fullPage: true })
+    await page.screenshot({ path: `${RESULTS_DIR}/08-navigate-to-map.png`, fullPage: true })
   })
 })

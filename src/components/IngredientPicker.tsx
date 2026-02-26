@@ -6,14 +6,10 @@ import { CATEGORY_COLORS, CATEGORY_META, CATEGORY_ORDER } from '@/lib/categories
 
 interface IngredientPickerProps {
   onSelect: (ingredient: CanonicalIngredient) => void
-  onSkip: () => void
-  onMarkPrepared?: () => void
 }
 
 export default function IngredientPicker({
   onSelect,
-  onSkip,
-  onMarkPrepared,
 }: IngredientPickerProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<IngredientCategory>>(new Set())
@@ -160,7 +156,7 @@ export default function IngredientPicker({
         </div>
       )}
 
-      <div className="shrink-0 px-4 pb-4">
+      <div className="shrink-0 px-4 pb-2">
         {selectedIngredient && (
           <button
             type="button"
@@ -170,24 +166,6 @@ export default function IngredientPicker({
             Asignar: {selectedIngredient.icon} {selectedIngredient.names.es}
           </button>
         )}
-
-        {onMarkPrepared && (
-          <button
-            type="button"
-            onClick={onMarkPrepared}
-            className="mt-3 w-full rounded-md border border-amber-300 bg-amber-50 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
-          >
-            🍱 Comida preparada
-          </button>
-        )}
-
-        <button
-          type="button"
-          onClick={onSkip}
-          className="mt-2 w-full rounded-md border border-primary/10 py-2 text-sm text-primary-dark/60 transition-colors hover:bg-surface hover:text-primary-dark"
-        >
-          Omitir
-        </button>
       </div>
     </div>
   )

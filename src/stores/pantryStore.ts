@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 import type { CanonicalIngredient, IngredientCategory } from '@/types/ingredient'
-import type { PantryItem, EnrichedPantryItem, ExpiryStatus } from '@/types/pantry'
+import type { CanonicalPreparedFood } from '@/types/prepared-food'
+import type { PantryItem, EnrichedPantryItem, ExpiryStatus, PreparedFoodCuisine } from '@/types/pantry'
 import { subscribeToPantry } from '@/services/pantry'
 import { getCanonicalIngredients } from '@/services/ingredients'
+import { getCanonicalPreparedFoods } from '@/services/prepared-foods'
 import { computeExpiryStatus } from '@/lib/expiry'
 import { PREPARED_FOOD_ICON } from '@/types/item-mapping'
 
@@ -14,27 +16,36 @@ interface PantryState {
   error: string | null
   activeFilter: IngredientCategory | 'all'
   expiryFilter: ExpiryStatus | 'all'
+  activeTab: 'ingredients' | 'prepared'
+  cuisineFilter: PreparedFoodCuisine | 'all'
 
   subscribe: (userId: string) => void
   unsubscribe: () => void
   setFilter: (filter: IngredientCategory | 'all') => void
   setExpiryFilter: (filter: ExpiryStatus | 'all') => void
+  setActiveTab: (tab: 'ingredients' | 'prepared') => void
+  setCuisineFilter: (filter: PreparedFoodCuisine | 'all') => void
 }
 
 let _unsubscribe: (() => void) | null = null
 let _ingredientMap: Map<string, CanonicalIngredient> | null = null
+let _preparedFoodMap: Map<string, CanonicalPreparedFood> | null = null
 let _subscribingUserId: string | null = null
 
 function enrichItems(items: PantryItem[]): EnrichedPantryItem[] {
-  const map = _ingredientMap
+  const ingMap = _ingredientMap
+  const pfMap = _preparedFoodMap
   return items
     .map((item): EnrichedPantryItem => {
       const isPrepared = item.type === 'prepared'
-      const canonical = map?.get(item.canonicalId)
+      const canonical = ingMap?.get(item.canonicalId)
+      const preparedFood = pfMap?.get(item.canonicalId)
 
       return {
         ...item,
-        icon: isPrepared ? PREPARED_FOOD_ICON : (canonical?.icon ?? '📦'),
+        icon: isPrepared
+          ? (preparedFood?.icon ?? PREPARED_FOOD_ICON)
+          : (canonical?.icon ?? '📦'),
         category: isPrepared ? 'Other' : (canonical?.category ?? 'Other'),
         expiryStatus: computeExpiryStatus(item.estimatedExpiry),
       }
@@ -52,6 +63,8 @@ export const usePantryStore = create<PantryState>((set) => ({
   error: null,
   activeFilter: 'all',
   expiryFilter: 'all',
+  activeTab: 'ingredients',
+  cuisineFilter: 'all',
 
   subscribe: async (userId: string) => {
     // Guard against double subscription
@@ -61,10 +74,14 @@ export const usePantryStore = create<PantryState>((set) => ({
     set({ loading: true, error: null })
 
     try {
-      // Fetch canonical ingredients first to build the enrichment map
-      if (!_ingredientMap) {
-        const ingredients = await getCanonicalIngredients()
-        _ingredientMap = new Map(ingredients.map((i) => [i.id, i]))
+      // Fetch canonical data to build enrichment maps
+      if (!_ingredientMap || !_preparedFoodMap) {
+        const [ingredients, preparedFoods] = await Promise.all([
+          _ingredientMap ? [] : getCanonicalIngredients(),
+          _preparedFoodMap ? [] : getCanonicalPreparedFoods(),
+        ])
+        if (!_ingredientMap) _ingredientMap = new Map(ingredients.map((i) => [i.id, i]))
+        if (!_preparedFoodMap) _preparedFoodMap = new Map(preparedFoods.map((pf) => [pf.id, pf]))
       }
 
       // Bail if unsubscribe was called while we were fetching
@@ -98,4 +115,6 @@ export const usePantryStore = create<PantryState>((set) => ({
 
   setFilter: (filter) => set({ activeFilter: filter }),
   setExpiryFilter: (filter) => set({ expiryFilter: filter }),
+  setActiveTab: (tab) => set({ activeTab: tab }),
+  setCuisineFilter: (filter) => set({ cuisineFilter: filter }),
 }))

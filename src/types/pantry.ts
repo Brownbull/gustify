@@ -5,6 +5,15 @@ export type PantryItemType = 'ingredient' | 'prepared'
 
 export type ExpiryStatus = 'fresh' | 'expiring-soon' | 'expired'
 
+export type PreparedFoodCuisine =
+  | 'mediterranean'
+  | 'chinese'
+  | 'indian'
+  | 'peruvian'
+  | 'chilean'
+  | 'other'
+  | 'unclassified'
+
 export interface PantryItem {
   id: string
   canonicalId: string
@@ -16,6 +25,7 @@ export interface PantryItem {
   sourceTransactionId?: string
   status: 'available' | 'low' | 'expired'
   type?: PantryItemType
+  cuisine?: PreparedFoodCuisine
 }
 
 export interface EnrichedPantryItem extends PantryItem {
