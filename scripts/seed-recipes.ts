@@ -1,6 +1,7 @@
 import { initializeApp, cert } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { getFirestore, Timestamp } from 'firebase-admin/firestore'
 import { SEED_RECIPES } from './data/seed-recipes.js'
+import { RecipeSchema } from '../src/types/recipe.js'
 import { createRequire } from 'module'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -37,6 +38,19 @@ async function seedRecipes() {
     return
   }
 
+  // Validate all recipes against Zod schema before writing
+  const invalid: string[] = []
+  for (const recipe of newRecipes) {
+    const result = RecipeSchema.safeParse(recipe)
+    if (!result.success) {
+      invalid.push(`  "${recipe.name}" (${recipe.id}): ${result.error.message}`)
+    }
+  }
+  if (invalid.length > 0) {
+    console.error(`\nSchema validation failed for ${invalid.length} recipe(s):\n${invalid.join('\n')}`)
+    process.exit(1)
+  }
+
   console.log(`  Writing ${newRecipes.length} new recipes...\n`)
 
   const BATCH_SIZE = 500
@@ -46,33 +60,38 @@ async function seedRecipes() {
   let errorCount = 0
 
   for (const recipe of newRecipes) {
-    try {
-      const docRef = adminDb.collection('recipes').doc(recipe.id)
-      const { id: _id, ...docData } = recipe
+    const docRef = adminDb.collection('recipes').doc(recipe.id)
+    const { id: _id, ...docData } = recipe
 
-      batch.set(docRef, {
-        ...docData,
-        createdAt: new Date().toISOString(),
-      })
-      inBatch++
+    batch.set(docRef, {
+      ...docData,
+      createdAt: Timestamp.now(),
+    })
+    inBatch++
 
-      if (inBatch >= BATCH_SIZE) {
+    if (inBatch >= BATCH_SIZE) {
+      try {
         await batch.commit()
         batchCount++
         console.log(`  Batch ${batchCount} committed (${inBatch} docs)`)
-        batch = adminDb.batch()
-        inBatch = 0
+      } catch (e) {
+        errorCount += inBatch
+        console.error(`  ERROR committing batch ${batchCount + 1} (${inBatch} docs):`, e)
       }
-    } catch (e) {
-      errorCount++
-      console.error(`  ERROR writing recipe "${recipe.name}" (${recipe.id}):`, e)
+      batch = adminDb.batch()
+      inBatch = 0
     }
   }
 
   if (inBatch > 0) {
-    await batch.commit()
-    batchCount++
-    console.log(`  Batch ${batchCount} committed (${inBatch} docs)`)
+    try {
+      await batch.commit()
+      batchCount++
+      console.log(`  Batch ${batchCount} committed (${inBatch} docs)`)
+    } catch (e) {
+      errorCount += inBatch
+      console.error(`  ERROR committing batch ${batchCount + 1} (${inBatch} docs):`, e)
+    }
   }
 
   console.log(`\n--- Summary ---`)

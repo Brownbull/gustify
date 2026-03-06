@@ -57,9 +57,7 @@ export function ing(data: {
   return result as SeedRecipe['ingredients'][number]
 }
 
-// Helper to build a recipe with source defaulted
-export function recipe(
-  data: Omit<SeedRecipe, 'source'> & { source?: { type: 'seed' } },
-): SeedRecipe {
+// Helper to build a recipe with source auto-set to 'seed'
+export function recipe(data: Omit<SeedRecipe, 'source'>): SeedRecipe {
   return { ...data, source: { type: 'seed' as const } }
 }
