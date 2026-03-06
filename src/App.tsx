@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import BottomNav from '@/components/BottomNav'
 import { useAuthStore } from '@/stores/authStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import MapItemsPage from '@/pages/MapItemsPage'
 import PantryPage from '@/pages/PantryPage'
 import RecipesPage from '@/pages/RecipesPage'
-
-type AppView = 'home' | 'pantry' | 'recipes' | 'mapItems'
+import RecipeDetailPage from '@/pages/RecipeDetailPage'
 
 function UserHeader() {
   const user = useAuthStore((s) => s.user)
@@ -41,85 +42,48 @@ function UserHeader() {
   )
 }
 
-function App() {
-  const [view, setView] = useState<AppView>('home')
+function AppLayout() {
   const user = useAuthStore((s) => s.user)
   const subscribePantry = usePantryStore((s) => s.subscribe)
   const unsubscribePantry = usePantryStore((s) => s.unsubscribe)
 
-  // Keep pantry subscription active across all tabs while user is logged in
   useEffect(() => {
     if (user) subscribePantry(user.uid)
     return () => unsubscribePantry()
   }, [user, subscribePantry, unsubscribePantry])
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-dvh bg-surface flex flex-col">
-        <UserHeader />
-        <main className="flex flex-1 flex-col pb-16">
-          {view === 'home' ? (
-            <div className="flex flex-1 flex-col items-center justify-center p-4">
-              <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
-            </div>
-          ) : view === 'pantry' ? (
-            <PantryPage onNavigateToMap={() => setView('mapItems')} />
-          ) : view === 'recipes' ? (
-            <RecipesPage onNavigateToPantry={() => setView('pantry')} />
-          ) : (
-            <MapItemsPage />
-          )}
-        </main>
-        <nav className="fixed bottom-0 left-0 right-0 border-t border-primary/10 bg-surface-light">
-          <div className="flex">
-            <button
-              type="button"
-              onClick={() => setView('home')}
-              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                view === 'home'
-                  ? 'text-primary'
-                  : 'text-primary-dark/40 hover:text-primary-dark/60'
-              }`}
-            >
-              Inicio
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('pantry')}
-              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                view === 'pantry'
-                  ? 'text-primary'
-                  : 'text-primary-dark/40 hover:text-primary-dark/60'
-              }`}
-            >
-              Despensa
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('recipes')}
-              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                view === 'recipes'
-                  ? 'text-primary'
-                  : 'text-primary-dark/40 hover:text-primary-dark/60'
-              }`}
-            >
-              Recetas
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('mapItems')}
-              className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                view === 'mapItems'
-                  ? 'text-primary'
-                  : 'text-primary-dark/40 hover:text-primary-dark/60'
-              }`}
-            >
-              Mapear
-            </button>
-          </div>
-        </nav>
-      </div>
-    </ProtectedRoute>
+    <div className="min-h-dvh bg-surface flex flex-col">
+      <UserHeader />
+      <main className="flex flex-1 flex-col pb-16">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div className="flex flex-1 flex-col items-center justify-center p-4">
+                <p className="text-lg text-primary-dark">Tu compañero de cocina</p>
+              </div>
+            }
+          />
+          <Route path="/pantry" element={<PantryPage />} />
+          <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/map-items" element={<MapItemsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <BottomNav />
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    </BrowserRouter>
   )
 }
 
