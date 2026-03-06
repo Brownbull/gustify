@@ -3,6 +3,9 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
+  query,
+  limit,
   type QueryDocumentSnapshot,
   type DocumentData,
 } from 'firebase/firestore'
@@ -32,4 +35,27 @@ export async function getRecipeById(
   if (!snapshot.exists()) return null
 
   return { ...snapshot.data(), id: snapshot.id } as StoredRecipe
+}
+
+const RECIPE_LIMIT = 200
+
+/**
+ * Subscribes to real-time updates of the recipes collection.
+ * Returns an unsubscribe function.
+ */
+export function subscribeToRecipes(
+  callback: (recipes: StoredRecipe[]) => void,
+  onError?: (error: Error) => void,
+): () => void {
+  const q = query(collection(db, recipesPath()), limit(RECIPE_LIMIT))
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const recipes = snapshot.docs.map(docToRecipe)
+      callback(recipes)
+    },
+    (error) => {
+      if (onError) onError(error)
+    },
+  )
 }

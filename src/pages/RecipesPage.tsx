@@ -1,49 +1,71 @@
-import { useState } from 'react'
-import { useAuthStore } from '@/stores/authStore'
+import { useEffect, useState } from 'react'
+import { useRecipeStore, type RankedRecipe } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
-import { useRecipeStore } from '@/stores/recipeStore'
 import RecipeCard from '@/components/RecipeCard'
-import type { Recipe } from '@/types/recipe'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import type { StoredRecipe } from '@/types/recipe'
 
 interface RecipesPageProps {
   onNavigateToPantry: () => void
 }
 
 export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
-  const user = useAuthStore((s) => s.user)
   const pantryItems = usePantryStore((s) => s.items)
   const pantryLoading = usePantryStore((s) => s.loading)
-  const recipes = useRecipeStore((s) => s.recipes)
   const loading = useRecipeStore((s) => s.loading)
   const error = useRecipeStore((s) => s.error)
-  const fetchSuggestions = useRecipeStore((s) => s.fetchSuggestions)
+  const subscribe = useRecipeStore((s) => s.subscribe)
+  const unsubscribe = useRecipeStore((s) => s.unsubscribe)
+  const getRankedRecipes = useRecipeStore((s) => s.getRankedRecipes)
 
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  const [selectedRecipe, setSelectedRecipe] = useState<RankedRecipe | null>(null)
 
-  const nonExpiredItems = pantryItems.filter((i) => i.expiryStatus !== 'expired')
-  const hasPantryItems = nonExpiredItems.length > 0
+  useEffect(() => {
+    subscribe()
+    return () => unsubscribe()
+  }, [subscribe, unsubscribe])
 
-  function handleGenerate() {
-    if (!user || !hasPantryItems) return
-    fetchSuggestions(user.uid, pantryItems)
+  const rankedRecipes = getRankedRecipes()
+  const hasPantryItems = pantryItems.length > 0
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6" data-testid="recipe-loading-state">
+        <span className="inline-block h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+        <p className="text-sm text-primary-dark/60">Cargando recetas...</p>
+      </div>
+    )
   }
 
-  // Empty pantry state
-  if (!pantryLoading && !hasPantryItems && recipes.length === 0) {
+  // Error state
+  if (error) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-        <span className="text-5xl">🍳</span>
-        <h2 className="text-lg font-semibold text-primary-dark">Sin ingredientes</h2>
-        <p className="max-w-xs text-sm text-primary-dark/60">
-          Agrega ingredientes a tu despensa para recibir sugerencias de recetas personalizadas.
-        </p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center" data-testid="recipe-error-state">
+        <p className="text-sm text-red-600">{error}</p>
         <button
           type="button"
-          onClick={onNavigateToPantry}
-          className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+          onClick={() => {
+            unsubscribe()
+            subscribe()
+          }}
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
         >
-          Ir a Despensa
+          Reintentar
         </button>
+      </div>
+    )
+  }
+
+  // Empty state
+  if (rankedRecipes.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center" data-testid="recipe-empty-state">
+        <span className="text-5xl">📖</span>
+        <h2 className="text-lg font-semibold text-primary-dark">Sin recetas</h2>
+        <p className="max-w-xs text-sm text-primary-dark/60">
+          Aun no hay recetas disponibles. Pronto se agregaran nuevas recetas al catalogo.
+        </p>
       </div>
     )
   }
@@ -54,60 +76,25 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-primary-dark">Recetas</h2>
-          {recipes.length > 0 && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              {recipes.length}
-            </span>
-          )}
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            {rankedRecipes.length}
+          </span>
         </div>
+        {!pantryLoading && !hasPantryItems && (
+          <button
+            type="button"
+            onClick={onNavigateToPantry}
+            className="text-xs font-medium text-primary underline"
+          >
+            Agregar despensa
+          </button>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {/* Generate button */}
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={loading || !hasPantryItems}
-          className="mb-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
-          data-testid="generate-recipes-btn"
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Generando sugerencias...
-            </span>
-          ) : recipes.length > 0 ? (
-            'Generar nuevas sugerencias'
-          ) : (
-            'Generar sugerencias'
-          )}
-        </button>
-
-        {/* Pantry summary */}
-        {hasPantryItems && recipes.length === 0 && !loading && (
-          <p className="mb-4 text-center text-xs text-primary-dark/50">
-            {nonExpiredItems.length} ingredientes disponibles en tu despensa
-          </p>
-        )}
-
-        {/* Error state */}
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-700">{error}</p>
-            <button
-              type="button"
-              onClick={handleGenerate}
-              className="mt-2 text-xs font-medium text-red-600 underline"
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
-
-        {/* Recipe list */}
-        {recipes.length > 0 && (
+      <ErrorBoundary>
+        <div className="flex-1 overflow-y-auto px-4 pb-4" data-testid="recipe-list">
           <div className="space-y-3">
-            {recipes.map((recipe) => (
+            {rankedRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
@@ -115,16 +102,16 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
               />
             ))}
           </div>
-        )}
+        </div>
+      </ErrorBoundary>
 
-        {/* Recipe detail modal (basic, full detail is Issue #10) */}
-        {selectedRecipe && (
-          <RecipeDetailModal
-            recipe={selectedRecipe}
-            onClose={() => setSelectedRecipe(null)}
-          />
-        )}
-      </div>
+      {/* Recipe detail modal (basic, full detail is Story 1.5) */}
+      {selectedRecipe && (
+        <RecipeDetailModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
+      )}
     </div>
   )
 }
@@ -133,7 +120,7 @@ function RecipeDetailModal({
   recipe,
   onClose,
 }: {
-  recipe: Recipe
+  recipe: StoredRecipe & { pantryMatchPct: number }
   onClose: () => void
 }) {
   return (
@@ -182,13 +169,8 @@ function RecipeDetailModal({
             {recipe.ingredients.map((ing, i) => (
               <li
                 key={i}
-                className={`flex items-center gap-2 text-sm ${
-                  ing.inPantry ? 'text-primary-dark' : 'text-primary-dark/40'
-                }`}
+                className="flex items-center gap-2 text-sm text-primary-dark"
               >
-                <span className={`inline-block h-2 w-2 rounded-full ${
-                  ing.inPantry ? 'bg-green-500' : 'bg-red-400'
-                }`} />
                 {ing.quantity} {ing.unit} {ing.name}
               </li>
             ))}
