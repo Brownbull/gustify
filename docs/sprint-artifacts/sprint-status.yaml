@@ -1,0 +1,114 @@
+# generated: 2026-03-06
+# project: gustify
+# project_key: gustify
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Next epic tech context created by *epic-tech-context (required)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder by *create-story
+#   - ready-for-dev: Draft approved and story context created by *story-ready
+#   - in-progress: Developer actively working on implementation by *dev-story
+#   - review: Implementation complete, ready for review by *code-review
+#   - done: Story completed by *story-done
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done by *retrospective
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
+
+generated: 2026-03-06
+project: gustify
+project_key: gustify
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+
+  # ============================================================================
+  # COMPLETED ISSUES (pre-KDBP, GitHub Issues #1-6)
+  # Auth, canonical ingredients, item mapping, pantry view, Gemini suggestions
+  # ============================================================================
+
+  # Issue #1: Firebase project setup — merged to main
+  # Issue #2: Auth — Firebase Auth + Google OAuth — merged to main
+  # Issue #3: Canonical ingredients dictionary — merged to main
+  # Issue #4: Item mapping — merged to main
+  # Issue #5: Pantry view + segmented picker + canonical prepared foods — merged to main
+  # Issue #6: Gemini-powered recipe suggestions — merged to main
+
+  # ============================================================================
+  # Epic 1: Recipe Pool & Discovery (~19 points, 5 stories)
+  # "Your pantry-ranked recipe library"
+  # Persistent recipe pool, browsing, search/filter, pantry match, React Router
+  # FRs: FR-4.1-4.4, FR-4.6, FR-4.7, FR-6.1-6.5, FR-9.1
+  # Stories: docs/sprint-artifacts/epic-1/stories/
+  # ============================================================================
+  epic-1: backlog
+
+  1-1-recipe-data-model: ready-for-dev         # 2 pts - Zod schema + recipe Firestore service
+  1-2-recipe-seed-script: ready-for-dev        # 3 pts - 50+ Chilean recipes seeded to Firestore (DEPENDS: 1-1)
+  1-3-recipe-browsing: ready-for-dev           # 4 pts - RecipesPage rewrite + pantry match ranking (DEPENDS: 1-2)
+  1-4-recipe-search-filtering: ready-for-dev   # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
+  1-5-recipe-detail-react-router: ready-for-dev  # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
+
+  epic-1-retrospective: optional
+
+  # ============================================================================
+  # Epic 2: Dietary Safety & Allergen Filtering (~10 points, 3 stories)
+  # "No unsafe recipe reaches the screen"
+  # Allergen data on ingredients, dietary profile UI, strict filtering
+  # FRs: FR-1.4-1.6, FR-2.2, FR-4.5, FR-4.8
+  # Stories: docs/sprint-artifacts/epic-2/stories/
+  # ============================================================================
+  epic-2: backlog
+
+  2-1-allergen-data-migration: ready-for-dev   # 2 pts - Add allergens field to 70 canonical ingredients
+  2-2-dietary-profile-ui: ready-for-dev        # 4 pts - MorePage + DietaryProfileForm (DEPENDS: 2-1)
+  2-3-allergen-filtering: ready-for-dev        # 4 pts - Client-side allergen exclusion in recipe discovery (DEPENDS: 2-2)
+
+  epic-2-retrospective: optional
+
+  # ============================================================================
+  # Epic 3: Recipe Contribution Pipeline (~19 points, 3 stories)
+  # "Anyone can grow the recipe pool"
+  # Prompt generation, external paste, built-in Gemini, manual entry, dedup, CF storage
+  # FRs: FR-5.1-5.12, FR-4.9
+  # Stories: docs/sprint-artifacts/epic-3/stories/
+  # ============================================================================
+  epic-3: backlog
+
+  3-1-recipe-prompt-paste: ready-for-dev       # 7 pts - Prompt assembly + external AI paste path
+  3-2-gemini-cf-storage: ready-for-dev         # 7 pts - Built-in Gemini + contributeRecipe CF + dedup (DEPENDS: 3-1)
+  3-3-manual-recipe-entry: ready-for-dev       # 5 pts - Step-by-step manual recipe form (DEPENDS: 3-2)
+
+  epic-3-retrospective: optional
+
+  # ============================================================================
+  # Epic 4: Cooking Log, Exploration & App Completion (~19 points, 5 stories)
+  # "Cook it, log it, grow from it"
+  # Cooking log, pantry deduction, exploration profile, cooking history,
+  # pantry enhancements, prepared meals, 5-tab navigation
+  # FRs: FR-6.6, FR-7.1-7.7, FR-3.3, FR-3.4, FR-3.6, FR-8.2, FR-8.3, FR-9.1, FR-9.3, FR-2.7
+  # Stories: docs/sprint-artifacts/epic-4/stories/
+  # ============================================================================
+  epic-4: backlog
+
+  4-1-cooking-log: ready-for-dev               # 5 pts - "Lo cocine!" button + rating + pantry deduction
+  4-2-exploration-profile: ready-for-dev       # 5 pts - Proficiency tracking + exploration profile UI (DEPENDS: 4-1)
+  4-3-cooking-history: ready-for-dev           # 2 pts - Chronological cooking history view (DEPENDS: 4-1)
+  4-4-pantry-enhancements: ready-for-dev       # 4 pts - Manual add + category filter + unclassifiable items
+  4-5-prepared-meals-nav: ready-for-dev        # 3 pts - Meal type logging + 5-tab nav polish (DEPENDS: 4-1)
+
+  epic-4-retrospective: optional

@@ -32,3 +32,9 @@ test-results/*
 playwright-artifacts/
 playwright-report/
 playwright/.cache/
+
+# Staging test user credentials
+staging-test-users.json
+
+# KDBP plugin (external dependency with its own git repo)
+_kdbp/

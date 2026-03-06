@@ -1,4 +1,6 @@
-export const TEST_USER_PASSWORD = 'gustify-staging-test-2026'
+import stagingTestUsers from '../../staging-test-users.json'
+
+export const TEST_USER_PASSWORD = stagingTestUsers.password
 
 export interface TestUser {
   email: string

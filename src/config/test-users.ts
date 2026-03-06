@@ -1,3 +1,5 @@
+import stagingTestUsers from '../../staging-test-users.json'
+
 /**
  * Browser-safe test user display data for the dev/staging test user menu.
  * Full user definitions (with Firestore docs) live in e2e/fixtures/test-users.ts.
@@ -10,6 +12,6 @@ export const DEV_TEST_USERS = [
   { key: 'avanzado', name: 'Diana Avanzada', tier: 'Avanzado', dishes: 120, email: 'diana@boletapp.test' },
 ] as const
 
-export const TEST_USER_PASSWORD = 'gustify-staging-test-2026'
+export const TEST_USER_PASSWORD = stagingTestUsers.password
 
 export type DevTestUserKey = (typeof DEV_TEST_USERS)[number]['key']
