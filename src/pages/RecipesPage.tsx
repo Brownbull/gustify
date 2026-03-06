@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRecipeStore, type RankedRecipe } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import RecipeCard from '@/components/RecipeCard'
+import RecipeFilters from '@/components/RecipeFilters'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { getMatchColorClass } from '@/lib/matchColor'
 import type { StoredRecipe } from '@/types/recipe'
@@ -18,6 +19,10 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
   const subscribe = useRecipeStore((s) => s.subscribe)
   const unsubscribe = useRecipeStore((s) => s.unsubscribe)
   const getRankedRecipes = useRecipeStore((s) => s.getRankedRecipes)
+  const getFilteredRecipes = useRecipeStore((s) => s.getFilteredRecipes)
+  const searchQuery = useRecipeStore((s) => s.searchQuery)
+  const cuisineFilter = useRecipeStore((s) => s.cuisineFilter)
+  const complexityFilter = useRecipeStore((s) => s.complexityFilter)
 
   const [selectedRecipe, setSelectedRecipe] = useState<RankedRecipe | null>(null)
 
@@ -27,7 +32,15 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
   }, [subscribe, unsubscribe])
 
   const rankedRecipes = getRankedRecipes()
+  const filteredRecipes = getFilteredRecipes()
   const hasPantryItems = pantryItems.length > 0
+  const hasActiveFilters = searchQuery !== '' || cuisineFilter !== null || complexityFilter !== null
+
+  // Derive available cuisines from loaded recipes
+  const cuisines = useMemo(
+    () => [...new Set(rankedRecipes.map((r) => r.cuisine))].sort(),
+    [rankedRecipes],
+  )
 
   // Loading state
   if (loading) {
@@ -78,7 +91,7 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-primary-dark">Recetas</h2>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-            {rankedRecipes.length}
+            {hasActiveFilters ? `${filteredRecipes.length}/${rankedRecipes.length}` : rankedRecipes.length}
           </span>
         </div>
         {!pantryLoading && !hasPantryItems && (
@@ -92,10 +105,19 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
         )}
       </div>
 
+      {/* Filters */}
+      <RecipeFilters cuisines={cuisines} />
+
       <ErrorBoundary>
+        {filteredRecipes.length === 0 && hasActiveFilters ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center" data-testid="recipe-no-results">
+            <span className="text-3xl">🔍</span>
+            <p className="text-sm text-primary-dark/60">No se encontraron recetas</p>
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto px-4 pb-4" data-testid="recipe-list">
           <div className="space-y-3">
-            {rankedRecipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
@@ -104,6 +126,7 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
             ))}
           </div>
         </div>
+        )}
       </ErrorBoundary>
 
       {/* Recipe detail modal (basic, full detail is Story 1.5) */}

@@ -60,7 +60,7 @@ development_status:
   1-1-recipe-data-model: done                    # 2 pts - Zod schema + recipe Firestore service
   1-2-recipe-seed-script: done                  # 3 pts - 50+ Chilean recipes seeded to Firestore (DEPENDS: 1-1)
   1-3-recipe-browsing: done                    # 4 pts - RecipesPage rewrite + pantry match ranking (DEPENDS: 1-2)
-  1-4-recipe-search-filtering: ready-for-dev   # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
+  1-4-recipe-search-filtering: review            # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
   1-5-recipe-detail-react-router: ready-for-dev  # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
 
   TD-1-1-recipe-model-hardening: ready-for-dev   # 2 pts - Zod runtime validation + schema ID refactor + type derivation (DEPENDS: 1-1)
