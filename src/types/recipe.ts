@@ -5,7 +5,7 @@ import type { ProficiencyTier } from './user'
 
 const RecipeIngredientSchema = z.object({
   name: z.string().min(1),
-  quantity: z.number().nonnegative(),
+  quantity: z.number().positive(),
   unit: z.string().min(1),
   canonicalId: z.string().optional(),
 })
@@ -19,7 +19,7 @@ const RecipeStepSchema = z.object({
 export const RecipeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).max(200),
-  description: z.string(),
+  description: z.string().min(1),
   cuisine: z.string().min(1),
   techniques: z.string().array().min(1),
   complexity: z.number().int().min(1).max(5),

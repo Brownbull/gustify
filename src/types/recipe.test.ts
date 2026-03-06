@@ -94,6 +94,56 @@ describe('RecipeSchema', () => {
     })
   })
 
+  // AC-2 extended: reject other missing required fields
+  describe('rejects other missing required fields', () => {
+    it('rejects missing id', () => {
+      const { id, ...noId } = validRecipe
+      const result = RecipeSchema.safeParse(noId)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing description', () => {
+      const { description, ...noDesc } = validRecipe
+      const result = RecipeSchema.safeParse(noDesc)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing techniques', () => {
+      const { techniques, ...noTech } = validRecipe
+      const result = RecipeSchema.safeParse(noTech)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing complexity', () => {
+      const { complexity, ...noComp } = validRecipe
+      const result = RecipeSchema.safeParse(noComp)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing prepTime', () => {
+      const { prepTime, ...noPrepTime } = validRecipe
+      const result = RecipeSchema.safeParse(noPrepTime)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing cookTime', () => {
+      const { cookTime, ...noCookTime } = validRecipe
+      const result = RecipeSchema.safeParse(noCookTime)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing servings', () => {
+      const { servings, ...noServings } = validRecipe
+      const result = RecipeSchema.safeParse(noServings)
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects empty techniques array', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, techniques: [] })
+      expect(result.success).toBe(false)
+    })
+  })
+
   // AC-4: Validation Edge Cases
   describe('boundary values', () => {
     it('rejects complexity 0', () => {
@@ -133,6 +183,73 @@ describe('RecipeSchema', () => {
 
     it('rejects empty steps array', () => {
       const result = RecipeSchema.safeParse({ ...validRecipe, steps: [] })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects negative prepTime', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, prepTime: -1 })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects negative cookTime', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, cookTime: -1 })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects non-integer complexity', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, complexity: 2.5 })
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('ingredient validation', () => {
+    it('rejects ingredient with empty name', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        ingredients: [{ name: '', quantity: 1, unit: 'g' }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects ingredient with zero quantity', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        ingredients: [{ name: 'Salt', quantity: 0, unit: 'g' }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects ingredient with negative quantity', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        ingredients: [{ name: 'Salt', quantity: -1, unit: 'g' }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects ingredient with empty unit', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        ingredients: [{ name: 'Salt', quantity: 1, unit: '' }],
+      })
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('step validation', () => {
+    it('rejects step with non-positive order', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        steps: [{ order: 0, instruction: 'Do something' }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects step with empty instruction', () => {
+      const result = RecipeSchema.safeParse({
+        ...validRecipe,
+        steps: [{ order: 1, instruction: '' }],
+      })
       expect(result.success).toBe(false)
     })
   })

@@ -25,6 +25,8 @@ export async function getAllRecipes(): Promise<StoredRecipe[]> {
 export async function getRecipeById(
   recipeId: string,
 ): Promise<StoredRecipe | null> {
+  if (!recipeId) return null
+
   const snapshot = await getDoc(doc(db, recipesPath(), recipeId))
 
   if (!snapshot.exists()) return null

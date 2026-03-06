@@ -116,5 +116,26 @@ describe('Recipe Service', () => {
 
       expect(doc).toHaveBeenCalledWith(expect.anything(), 'recipes', 'test-id')
     })
+
+    it('returns null for empty recipeId', async () => {
+      const recipe = await getRecipeById('')
+
+      expect(recipe).toBeNull()
+      expect(getDoc).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('error propagation', () => {
+    it('propagates Firestore errors from getAllRecipes', async () => {
+      vi.mocked(getDocs).mockRejectedValue(new Error('Firestore unavailable'))
+
+      await expect(getAllRecipes()).rejects.toThrow('Firestore unavailable')
+    })
+
+    it('propagates Firestore errors from getRecipeById', async () => {
+      vi.mocked(getDoc).mockRejectedValue(new Error('Firestore unavailable'))
+
+      await expect(getRecipeById('recipe-1')).rejects.toThrow('Firestore unavailable')
+    })
   })
 })
