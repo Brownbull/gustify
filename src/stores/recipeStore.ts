@@ -18,7 +18,10 @@ interface RecipeState {
   getRankedRecipes: () => RankedRecipe[]
 }
 
+// Singleton listener — only one subscription active at a time.
+// The guard in subscribe() silently skips if already subscribed.
 let _unsubscribe: (() => void) | null = null
+let _rankedCache: { key: string; result: RankedRecipe[] } | null = null
 
 export const useRecipeStore = create<RecipeState>((set, get) => ({
   recipes: [],
@@ -51,14 +54,21 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
     const { recipes } = get()
     const pantryItems = usePantryStore.getState().items
 
+    // Cache key: recipe ids + pantry ids. Recompute only when either changes.
+    const cacheKey = recipes.map((r) => r.id).join(',') + '|' + pantryItems.map((p) => p.canonicalId).join(',')
+    if (_rankedCache?.key === cacheKey) return _rankedCache.result
+
     const pantryCanonicalIds = new Set(pantryItems.map((p) => p.canonicalId))
     const pantryNamesLower = new Set(pantryItems.map((p) => p.name.toLowerCase()))
 
-    return recipes
+    const result = recipes
       .map((recipe) => ({
         ...recipe,
         pantryMatchPct: computePantryMatchPct(recipe, pantryCanonicalIds, pantryNamesLower),
       }))
       .sort((a, b) => b.pantryMatchPct - a.pantryMatchPct)
+
+    _rankedCache = { key: cacheKey, result }
+    return result
   },
 }))

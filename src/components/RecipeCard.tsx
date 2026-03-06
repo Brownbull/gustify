@@ -1,4 +1,5 @@
 import type { RankedRecipe } from '@/stores/recipeStore'
+import { getMatchColorClass } from '@/lib/matchColor'
 
 const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
@@ -22,13 +23,7 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
           <p className="mt-0.5 text-xs text-primary-dark/50">{recipe.cuisine}</p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-            recipe.pantryMatchPct >= 80
-              ? 'bg-green-100 text-green-700'
-              : recipe.pantryMatchPct >= 50
-                ? 'bg-amber-100 text-amber-700'
-                : 'bg-red-100 text-red-700'
-          }`}
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${getMatchColorClass(recipe.pantryMatchPct)}`}
         >
           {recipe.pantryMatchPct}%
         </span>

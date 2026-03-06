@@ -3,6 +3,7 @@ import { useRecipeStore, type RankedRecipe } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import RecipeCard from '@/components/RecipeCard'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import { getMatchColorClass } from '@/lib/matchColor'
 import type { StoredRecipe } from '@/types/recipe'
 
 interface RecipesPageProps {
@@ -42,7 +43,7 @@ export default function RecipesPage({ onNavigateToPantry }: RecipesPageProps) {
   if (error) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center" data-testid="recipe-error-state">
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600">Error al cargar recetas. Intenta de nuevo.</p>
         <button
           type="button"
           onClick={() => {
@@ -142,13 +143,7 @@ function RecipeDetailModal({
               <p className="text-sm text-primary-dark/50">{recipe.cuisine}</p>
             </div>
             <span
-              className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold ${
-                recipe.pantryMatchPct >= 80
-                  ? 'bg-green-100 text-green-700'
-                  : recipe.pantryMatchPct >= 50
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-red-100 text-red-700'
-              }`}
+              className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold ${getMatchColorClass(recipe.pantryMatchPct)}`}
             >
               {recipe.pantryMatchPct}% match
             </span>
@@ -166,9 +161,9 @@ function RecipeDetailModal({
           {/* Ingredients */}
           <h4 className="mt-4 text-sm font-semibold text-primary-dark">Ingredientes</h4>
           <ul className="mt-2 space-y-1.5">
-            {recipe.ingredients.map((ing, i) => (
+            {recipe.ingredients.map((ing) => (
               <li
-                key={i}
+                key={ing.canonicalId ?? ing.name}
                 className="flex items-center gap-2 text-sm text-primary-dark"
               >
                 {ing.quantity} {ing.unit} {ing.name}
