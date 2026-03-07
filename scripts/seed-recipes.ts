@@ -18,6 +18,7 @@ const app = initializeApp({
 
 const adminDb = getFirestore(app)
 
+// Retry batch commit with exponential backoff: 1 initial attempt + up to maxRetries retries
 async function commitWithRetry(
   batch: ReturnType<typeof adminDb.batch>,
   batchNumber: number,
@@ -32,13 +33,13 @@ async function commitWithRetry(
       if (attempt < maxRetries) {
         const delay = 1000 * 2 ** attempt // 1s, 2s, 4s, ...
         console.warn(
-          `  Batch ${batchNumber} attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
+          `  Batch ${batchNumber} attempt ${attempt + 1}/${maxRetries + 1} failed, retrying in ${delay}ms...`,
           e,
         )
         await new Promise((resolve) => setTimeout(resolve, delay))
       } else {
         console.error(
-          `  ERROR: Batch ${batchNumber} (${docCount} docs) failed after ${maxRetries} retries:`,
+          `  ERROR: Batch ${batchNumber} (${docCount} docs) failed after ${maxRetries + 1} attempts:`,
           e,
         )
       }
@@ -47,7 +48,7 @@ async function commitWithRetry(
   return false
 }
 
-async function seedRecipes() {
+async function seedRecipes(): Promise<boolean> {
   console.log('Seeding recipes into staging Firestore...\n')
   console.log(`Total seed recipes: ${SEED_RECIPES.length}\n`)
 
@@ -64,7 +65,7 @@ async function seedRecipes() {
 
   if (newRecipes.length === 0) {
     console.log('\nAll recipes already exist. Nothing to seed.')
-    return
+    return false
   }
 
   // Validate all recipes against Zod schema before writing
@@ -125,16 +126,18 @@ async function seedRecipes() {
   }
 
   console.log(`\n--- Summary ---`)
-  console.log(`Seeded: ${newRecipes.length - errorCount} new recipes`)
+  console.log(`Seeded: ${newRecipes.length - errorCount} recipes`)
   console.log(`Skipped: ${skippedCount} existing recipes`)
   if (errorCount > 0) {
-    console.log(`Errors: ${errorCount}`)
+    console.log(`Failed: ${errorCount} recipes (${batchNumber - successCount} batches)`)
   }
-  console.log(`Batches: ${successCount}/${batchNumber}`)
+  console.log(`Batches committed: ${successCount}/${batchNumber}`)
+
+  return errorCount > 0
 }
 
 seedRecipes()
-  .then(() => process.exit(0))
+  .then((hadErrors) => process.exit(hadErrors ? 1 : 0))
   .catch((e) => {
     console.error('Seed failed:', e)
     process.exit(1)

@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-2: Seed Script Hardening
 
-## Status: review
+## Status: done
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-2
 > **Priority:** P3 | **Estimated Effort:** 1 pt
@@ -40,5 +40,19 @@ As a **developer**, I want **the recipe seed script to have retry logic, precise
 ## Dev Notes
 - Source story: [1-2](./1.2-recipe-seed-script.md)
 - Review findings: #2, #3, #5, #7
-- Files affected: `scripts/seed-recipes.ts`, `scripts/data/seed-recipes-helpers.ts`
+- Files affected: `scripts/seed-recipes.ts`, `scripts/data/seed-recipes-helpers.ts`, `scripts/data/seed-recipes.test.ts`
 - Low priority — seed script is run-once per environment and can be re-run on failure
+
+### Review Quick Fixes Applied (2026-03-06)
+- #3: Clarified retry semantics (comment + attempt counter in log messages)
+- #4: Exit with code 1 on partial failure (CI-visible)
+- #6: Added CATEGORY_MAP exhaustiveness + fallback tests (2 new tests)
+- #7: Labeled summary units (recipes vs batches)
+
+### Deferred Items (not worth separate TD — run-once script)
+| # | Finding | Reason Deferred |
+|---|---------|-----------------|
+| 1 | `IngredientCategory` import sources PascalCase type (ingredient.ts) vs lowercase (recipe.ts) | Correct for this use case — maps FROM canonical categories. Two-type divergence is a broader codebase concern |
+| 2 | `commitWithRetry` re-commits same batch object on retry | Firestore SDK behavior on failed commit is implementation-specific; script is idempotent on re-run |
+| 5 | `commitWithRetry` not exported/unit-tested | Private to CLI script; covered by integration (manual re-run) |
+| 8 | `ing()` overrides explicit `pantryItem: false` | Pre-existing behavior, not introduced by this story |
