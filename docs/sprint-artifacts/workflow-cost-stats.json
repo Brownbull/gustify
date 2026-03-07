@@ -1,22 +1,22 @@
 {
-  "generated": "2026-03-06T21:45:13.478546",
+  "generated": "2026-03-07T00:10:41.298077",
   "csv_path": "/home/khujta/projects/bmad/gustify/docs/sprint-artifacts/workflow-costs.csv",
-  "total_sessions": 5,
-  "total_cost": 35.55,
+  "total_sessions": 6,
+  "total_cost": 42.91,
   "averages": {
-    "overall": 7.11,
-    "last_10": 7.11,
-    "last_20": 7.11
+    "overall": 7.15,
+    "last_10": 7.15,
+    "last_20": 7.15
   },
   "percentiles": {
-    "p50": 8.28,
-    "p75": 9.08,
-    "p90": 10.98,
-    "p95": 11.62
+    "p50": 7.82,
+    "p75": 8.88,
+    "p90": 10.66,
+    "p95": 11.46
   },
   "thresholds": {
-    "warning": 10.66,
-    "high": 14.22
+    "warning": 10.73,
+    "high": 14.3
   },
   "trend_last10_vs_prev10_pct": null,
   "recent_outliers": [
@@ -33,19 +33,19 @@
       "total_cost": 20.91
     },
     "opus, sonnet": {
-      "count": 2,
-      "total_cost": 14.64
+      "count": 3,
+      "total_cost": 22.0
     }
   },
   "by_workflow": {
     "kdbp-dev-story": {
-      "count": 4,
-      "total_cost": 29.99,
-      "avg": 7.5,
-      "avg_last_10": 7.5,
-      "p50": 8.68,
-      "p75": 9.87,
-      "p90": 11.3
+      "count": 5,
+      "total_cost": 37.35,
+      "avg": 7.47,
+      "avg_last_10": 7.47,
+      "p50": 8.28,
+      "p75": 9.08,
+      "p90": 10.98
     },
     "kdbp-code-review": {
       "count": 1,

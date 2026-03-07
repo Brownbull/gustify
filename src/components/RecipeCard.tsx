@@ -1,5 +1,6 @@
 import type { RankedRecipe } from '@/stores/recipeStore'
 import { getMatchColorClass } from '@/lib/matchColor'
+import { sanitizeText } from '@/lib/sanitize'
 
 const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
@@ -19,8 +20,8 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
       {/* Top row: name + match badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-semibold text-primary-dark">{recipe.name}</h3>
-          <p className="mt-0.5 text-xs text-primary-dark/50">{recipe.cuisine}</p>
+          <h3 className="truncate text-sm font-semibold text-primary-dark">{sanitizeText(recipe.name)}</h3>
+          <p className="mt-0.5 text-xs text-primary-dark/50">{sanitizeText(recipe.cuisine)}</p>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${getMatchColorClass(recipe.pantryMatchPct)}`}
@@ -31,7 +32,7 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
 
       {/* Description */}
       <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-primary-dark/60">
-        {recipe.description}
+        {sanitizeText(recipe.description)}
       </p>
 
       {/* Meta row */}

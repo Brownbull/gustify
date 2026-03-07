@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-5: DB-Sourced String Sanitization
 
-## Status: ready-for-dev
+## Status: review
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-5-recipe-detail-react-router
 > **Priority:** P2 | **Estimated Effort:** 2 pts
@@ -28,12 +28,12 @@ As a **developer**, I want **all DB-sourced strings sanitized before rendering**
 ## Tasks / Subtasks
 
 ### Task 1: Create Sanitize Utility (2 subtasks)
-- [ ] 1.1: Create `src/lib/sanitize.ts` with `sanitizeText(input: string, opts?: { maxLength?: number }): string`
-- [ ] 1.2: Add unit tests for sanitize utility (HTML tags, script injection, normal text passthrough)
+- [x] 1.1: Create `src/lib/sanitize.ts` with `sanitizeText(input: string, opts?: { maxLength?: number }): string`
+- [x] 1.2: Add unit tests for sanitize utility (HTML tags, script injection, normal text passthrough)
 
 ### Task 2: Apply to Recipe Rendering (2 subtasks)
-- [ ] 2.1: Apply `sanitizeText` to DB-sourced fields in `RecipeDetailPage.tsx` (name, description, instructions, ingredient names)
-- [ ] 2.2: Apply `sanitizeText` to DB-sourced fields in `RecipeCard.tsx`
+- [x] 2.1: Apply `sanitizeText` to DB-sourced fields in `RecipeDetailPage.tsx` (name, description, instructions, ingredient names)
+- [x] 2.2: Apply `sanitizeText` to DB-sourced fields in `RecipeCard.tsx`
 
 ## Dev Notes
 - Source story: [1.5-recipe-detail-react-router](./1.5-recipe-detail-react-router.md)

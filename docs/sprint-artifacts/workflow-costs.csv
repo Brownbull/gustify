@@ -4,3 +4,4 @@ date,session_id,workflow,story,duration,parent_msgs,subagent_count,subagent_msgs
 2026-03-06 16:36,96605765-563,kdbp-dev-story,1-5,36min,139,0,0,opus,177,26919,719766,8759303,12.25,0.00,12.25
 2026-03-07 00:08,46492436-481,kdbp-dev-story,TD-1-1-recipe-model-hardening,15min,107,5,76,"opus, sonnet",204,8725,548723,8806254,6.66,2.42,9.08
 2026-03-07 00:26,24ee2bb9-8cc,kdbp-code-review,TD-1-1,19min,79,2,7,"opus, sonnet",95,2044,315805,5115938,5.19,0.38,5.56
+2026-03-07 03:00,71de7429-444,kdbp-dev-story,TD-1-5,10min,112,3,45,"opus, sonnet",3137,7735,389726,7899120,5.87,1.49,7.36

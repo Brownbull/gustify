@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRecipeStore } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { getRecipeById } from '@/services/recipes'
+import { sanitizeText } from '@/lib/sanitize'
 import type { StoredRecipe } from '@/types/recipe'
 
 const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
@@ -91,12 +92,12 @@ export default function RecipeDetailPage() {
       <div className="px-4 pb-6">
         {/* Header */}
         <div className="mt-3" data-testid="recipe-header">
-          <h2 className="text-xl font-bold text-primary-dark">{recipe.name}</h2>
-          <p className="mt-1 text-sm text-primary-dark/60">{recipe.description}</p>
+          <h2 className="text-xl font-bold text-primary-dark">{sanitizeText(recipe.name)}</h2>
+          <p className="mt-1 text-sm text-primary-dark/60">{sanitizeText(recipe.description)}</p>
 
           {/* Meta */}
           <div className="mt-3 flex flex-wrap gap-3 text-xs text-primary-dark/50">
-            <span>{recipe.cuisine}</span>
+            <span>{sanitizeText(recipe.cuisine)}</span>
             <span className="flex items-center gap-1">
               {Array.from({ length: 5 }, (_, i) => (
                 <span
@@ -121,7 +122,7 @@ export default function RecipeDetailPage() {
                   key={tech}
                   className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
                 >
-                  {tech}
+                  {sanitizeText(tech)}
                 </span>
               ))}
             </div>
@@ -144,7 +145,7 @@ export default function RecipeDetailPage() {
                   }`}
                   aria-label={available ? 'Disponible' : 'Faltante'}
                 />
-                {ing.quantity} {ing.unit} {ing.name}
+                {ing.quantity} {ing.unit} {sanitizeText(ing.name)}
               </li>
             )
           })}
@@ -158,7 +159,7 @@ export default function RecipeDetailPage() {
               <span className="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                 {step.order}
               </span>
-              <span className="leading-relaxed">{step.instruction}</span>
+              <span className="leading-relaxed">{sanitizeText(step.instruction)}</span>
             </li>
           ))}
         </ol>
