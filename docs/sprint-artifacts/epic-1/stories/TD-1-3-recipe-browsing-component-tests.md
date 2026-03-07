@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-3: Recipe Browsing Component Tests
 
-## Status: review
+## Status: done
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-3-recipe-browsing
 > **Priority:** P2 | **Estimated Effort:** 2 pts
@@ -60,3 +60,12 @@ As a **developer**, I want **component-level tests for RecipesPage UI states**, 
 - Files affected: `src/pages/RecipesPage.tsx`, `src/components/RecipeCard.tsx`
 - Use `@testing-library/react` for component rendering
 - Mock Zustand stores to control state per test case
+
+### Review Quick Fixes Applied (2026-03-06)
+- #1: Refactored `setStoreState` to accept `filteredRecipes` param — eliminates fragile double-setter pattern
+- #3: Replaced complexity label forEach loop with `it.each` for clarity
+
+### Deferred Items
+| # | Finding | Reason Deferred |
+|---|---------|-----------------|
+| 2 | Duplicate `makeRankedRecipe` factory across test files | LOW severity, test-only DRY concern — not worth separate story |

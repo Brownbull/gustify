@@ -68,10 +68,12 @@ function setStoreState(overrides: Partial<{
   cuisineFilter: string | null
   complexityFilter: [number, number] | null
   recipes: RankedRecipe[]
+  filteredRecipes: RankedRecipe[]
 }> = {}) {
   const rankedRecipes = overrides.recipes ?? []
+  const filteredRecipes = overrides.filteredRecipes ?? rankedRecipes
   mockGetRankedRecipes.mockReturnValue(rankedRecipes)
-  mockGetFilteredRecipes.mockReturnValue(rankedRecipes)
+  mockGetFilteredRecipes.mockReturnValue(filteredRecipes)
 
   mockRecipeStoreState = {
     loading: false,
@@ -84,7 +86,6 @@ function setStoreState(overrides: Partial<{
     getRankedRecipes: mockGetRankedRecipes,
     getFilteredRecipes: mockGetFilteredRecipes,
     ...overrides,
-    // Ensure recipes-derived getters use the overridden recipes
   }
 
   mockPantryStoreState = {
@@ -145,15 +146,7 @@ describe('RecipesPage', () => {
   // AC-4: Zero results with active filters
   it('renders no-results state when filters active but no matches', () => {
     const recipes = [makeRankedRecipe()]
-    mockGetRankedRecipes.mockReturnValue(recipes)
-    mockGetFilteredRecipes.mockReturnValue([]) // filters exclude all
-
-    setStoreState({ loading: false, searchQuery: 'sushi', cuisineFilter: null, complexityFilter: null })
-    // Override getters after setStoreState since it resets them
-    mockGetRankedRecipes.mockReturnValue(recipes)
-    mockGetFilteredRecipes.mockReturnValue([])
-    mockRecipeStoreState.getRankedRecipes = mockGetRankedRecipes
-    mockRecipeStoreState.getFilteredRecipes = mockGetFilteredRecipes
+    setStoreState({ loading: false, searchQuery: 'sushi', recipes, filteredRecipes: [] })
 
     render(<RecipesPage />)
 
@@ -214,16 +207,7 @@ describe('RecipesPage', () => {
       makeRankedRecipe({ id: 'r2', name: 'Recipe 2' }),
       makeRankedRecipe({ id: 'r3', name: 'Recipe 3' }),
     ]
-    const filteredRecipes = [allRecipes[0]]
-
-    mockGetRankedRecipes.mockReturnValue(allRecipes)
-    mockGetFilteredRecipes.mockReturnValue(filteredRecipes)
-
-    setStoreState({ loading: false, searchQuery: 'Recipe 1' })
-    mockGetRankedRecipes.mockReturnValue(allRecipes)
-    mockGetFilteredRecipes.mockReturnValue(filteredRecipes)
-    mockRecipeStoreState.getRankedRecipes = mockGetRankedRecipes
-    mockRecipeStoreState.getFilteredRecipes = mockGetFilteredRecipes
+    setStoreState({ loading: false, searchQuery: 'Recipe 1', recipes: allRecipes, filteredRecipes: [allRecipes[0]] })
 
     render(<RecipesPage />)
 

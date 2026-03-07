@@ -84,14 +84,14 @@ describe('RecipeCard', () => {
     expect(onSelect).toHaveBeenCalledWith(recipe)
   })
 
-  it('renders all complexity labels correctly', () => {
-    const labels = ['Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
-    labels.forEach((label, idx) => {
-      const { unmount } = render(
-        <RecipeCard recipe={makeRecipe({ complexity: idx + 1 })} onSelect={vi.fn()} />,
-      )
-      expect(screen.getByText(label)).toBeInTheDocument()
-      unmount()
-    })
+  it.each([
+    [1, 'Muy facil'],
+    [2, 'Facil'],
+    [3, 'Intermedio'],
+    [4, 'Avanzado'],
+    [5, 'Experto'],
+  ])('renders complexity %i as "%s"', (complexity, label) => {
+    render(<RecipeCard recipe={makeRecipe({ complexity })} onSelect={vi.fn()} />)
+    expect(screen.getByText(label)).toBeInTheDocument()
   })
 })
