@@ -1,8 +1,7 @@
 import type { RankedRecipe } from '@/stores/recipeStore'
 import { getMatchColorClass } from '@/lib/matchColor'
+import { COMPLEXITY_LABELS } from '@/lib/recipe-constants'
 import { sanitizeText } from '@/lib/sanitize'
-
-const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
 interface RecipeCardProps {
   recipe: RankedRecipe

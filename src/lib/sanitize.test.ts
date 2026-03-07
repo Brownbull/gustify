@@ -66,6 +66,10 @@ describe('sanitizeText', () => {
     it('decodes &quot; to " in plain text context', () => {
       expect(sanitizeText('say &quot;hello&quot;')).toBe('say "hello"')
     })
+
+    it("decodes &apos; to ' in plain text context", () => {
+      expect(sanitizeText("it&apos;s delicious")).toBe("it's delicious")
+    })
   })
 
   describe('maxLength option', () => {

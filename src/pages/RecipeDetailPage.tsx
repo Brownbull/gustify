@@ -3,10 +3,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRecipeStore } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { getRecipeById } from '@/services/recipes'
+import { COMPLEXITY_LABELS } from '@/lib/recipe-constants'
 import { sanitizeText } from '@/lib/sanitize'
 import type { StoredRecipe } from '@/types/recipe'
-
-const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -145,7 +144,7 @@ export default function RecipeDetailPage() {
                   }`}
                   aria-label={available ? 'Disponible' : 'Faltante'}
                 />
-                {ing.quantity} {ing.unit} {sanitizeText(ing.name)}
+                {ing.quantity} {sanitizeText(ing.unit)} {sanitizeText(ing.name)}
               </li>
             )
           })}

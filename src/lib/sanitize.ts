@@ -10,11 +10,12 @@ const HTML_ENTITIES: Record<string, string> = {
   '&gt;': '>',
   '&amp;': '&',
   '&quot;': '"',
+  '&apos;': "'",
 }
 
 function decodeEntities(input: string): string {
   // Decode named entities
-  let result = input.replace(/&(?:lt|gt|amp|quot);/g, (match) => HTML_ENTITIES[match] ?? match)
+  let result = input.replace(/&(?:lt|gt|amp|quot|apos);/g, (match) => HTML_ENTITIES[match] ?? match)
 
   // Decode hex numeric entities (&#xHH; or &#xHHHH;)
   result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
@@ -39,6 +40,8 @@ export interface SanitizeOptions {
   maxLength?: number
 }
 
+/** Strips HTML tags and decodes entities, producing plain text safe for JSX interpolation.
+ *  NOT safe for raw HTML concatenation — decoded characters are not re-escaped. */
 export function sanitizeText(input: string, opts?: SanitizeOptions): string {
   if (typeof input !== 'string') return ''
 

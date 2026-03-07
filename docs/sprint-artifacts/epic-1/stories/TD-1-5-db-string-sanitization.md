@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-5: DB-Sourced String Sanitization
 
-## Status: review
+## Status: done
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-5-recipe-detail-react-router
 > **Priority:** P2 | **Estimated Effort:** 2 pts
@@ -41,3 +41,17 @@ As a **developer**, I want **all DB-sourced strings sanitized before rendering**
 - Files affected: `src/lib/sanitize.ts` (CREATE), `src/pages/RecipeDetailPage.tsx`, `src/components/RecipeCard.tsx`
 - React's JSX escaping already prevents most XSS, but project pattern #7 requires explicit sanitization as defense-in-depth
 - Recipes are Gemini-generated (Phase 1) and may become user-contributed (Phase 2+)
+
+## Senior Developer Review (ECC)
+- **Date:** 2026-03-07
+- **Agents:** code-reviewer (8/10), security-reviewer (9/10)
+- **Classification:** STANDARD | **Overall:** 8.5/10 APPROVE
+- **Quick fixes applied:** 5 (add &apos; entity, add &apos; test, extract COMPLEXITY_LABELS, sanitize ing.unit, add JSDoc)
+- **Deferred:** TD-1-6 (sanitize hardening — recursive decode + codepoint validation)
+
+| TD Story | Description | Priority | Action |
+|----------|-------------|----------|--------|
+| TD-1-6 | Sanitize utility hardening (recursive decode + codepoints) | P3 | CREATED |
+| TD-1-7 | Cross-store E2E + cache robustness | P4 | CREATED |
+
+<!-- CITED: L2-002 (input sanitization), L2-007 (DB-sourced injection) -->
