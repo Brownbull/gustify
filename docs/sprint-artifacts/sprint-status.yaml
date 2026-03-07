@@ -68,8 +68,8 @@ development_status:
   TD-1-3-recipe-browsing-component-tests: done  # 2 pts - Component tests for RecipesPage UI states (DEPENDS: 1-3)
   TD-1-4-recipe-ux-hardening: done                 # 2 pts - Cross-store reactivity fix + modal a11y (DEPENDS: 1-4)
   TD-1-5-db-string-sanitization: done                     # 2 pts - Sanitize DB-sourced strings in recipe rendering (DEPENDS: 1-5)
-  TD-1-6-sanitize-hardening: ready-for-dev               # 1 pt - Recursive decode loop + codepoint validation (DEPENDS: TD-1-5)
-  TD-1-7-cross-store-e2e: ready-for-dev                  # 1 pt - E2E pantry→recipe reactivity + cache key robustness (DEPENDS: TD-1-4)
+  TD-1-6-sanitize-hardening: done                         # 1 pt - Recursive decode loop + codepoint validation (DEPENDS: TD-1-5)
+  TD-1-7-cross-store-e2e: done                            # 1 pt - Cache key robustness; E2E test deferred to epic-4 (DEPENDS: TD-1-4)
 
   epic-1-retrospective: optional
 

@@ -17,13 +17,17 @@ function decodeEntities(input: string): string {
   // Decode named entities
   let result = input.replace(/&(?:lt|gt|amp|quot|apos);/g, (match) => HTML_ENTITIES[match] ?? match)
 
-  // Decode hex numeric entities (&#xHH; or &#xHHHH;)
-  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
-    String.fromCharCode(parseInt(hex, 16)),
-  )
+  // Decode hex numeric entities (&#xHH; or &#xHHHH;) with codepoint validation
+  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+    const cp = parseInt(hex, 16)
+    return cp >= 0 && cp <= 0x10FFFF ? String.fromCodePoint(cp) : '\uFFFD'
+  })
 
-  // Decode decimal numeric entities (&#NNN;)
-  result = result.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+  // Decode decimal numeric entities (&#NNN;) with codepoint validation
+  result = result.replace(/&#(\d+);/g, (_, dec) => {
+    const cp = parseInt(dec, 10)
+    return cp >= 0 && cp <= 0x10FFFF ? String.fromCodePoint(cp) : '\uFFFD'
+  })
 
   return result
 }
@@ -45,13 +49,15 @@ export interface SanitizeOptions {
 export function sanitizeText(input: string, opts?: SanitizeOptions): string {
   if (typeof input !== 'string') return ''
 
-  // Step 1: Remove dangerous elements (with content) and strip remaining tags
-  let result = stripAllTags(input)
-
-  // Step 2: Decode HTML entities
-  result = decodeEntities(result)
-
-  // Step 3: Re-strip any tags that survived entity decoding
+  // Decode+strip loop: repeat until output stabilizes (handles multi-layer encoding)
+  let result = input
+  for (let i = 0; i < 5; i++) {
+    const prev = result
+    result = stripAllTags(result)
+    result = decodeEntities(result)
+    if (result === prev) break
+  }
+  // Final strip pass after last decode
   result = stripAllTags(result)
 
   // Step 4: Trim whitespace

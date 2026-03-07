@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-6: Sanitize Utility Hardening
 
-## Status: ready-for-dev
+## Status: done
 
 > **Source:** ECC Code Review (2026-03-07) on stories TD-1-4 + TD-1-5
 > **Priority:** P3 | **Estimated Effort:** 1 pt
@@ -23,12 +23,12 @@ As a **developer**, I want **the sanitize utility to handle multi-layer entity e
 ## Tasks / Subtasks
 
 ### Task 1: Stabilization Loop (2 subtasks)
-- [ ] 1.1: Replace single decode+strip pass with `while (prev !== result)` loop (max 5 iterations)
-- [ ] 1.2: Add test cases for double and triple-encoded entities
+- [x] 1.1: Replace single decode+strip pass with `while (prev !== result)` loop (max 5 iterations)
+- [x] 1.2: Add test cases for double and triple-encoded entities
 
 ### Task 2: Codepoint Validation (2 subtasks)
-- [ ] 2.1: Clamp decoded codepoints to valid Unicode range (0x0–0x10FFFF), use `String.fromCodePoint`
-- [ ] 2.2: Add test cases for out-of-range and supplementary plane codepoints
+- [x] 2.1: Clamp decoded codepoints to valid Unicode range (0x0–0x10FFFF), use `String.fromCodePoint`
+- [x] 2.2: Add test cases for out-of-range and supplementary plane codepoints
 
 ## Dev Notes
 - Source stories: [TD-1-5](./TD-1-5-db-string-sanitization.md)

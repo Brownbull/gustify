@@ -104,6 +104,38 @@ describe('sanitizeText', () => {
     })
   })
 
+  describe('multi-layer encoding (stabilization loop)', () => {
+    it('strips double-encoded script tags (&amp;lt;script&amp;gt;)', () => {
+      expect(sanitizeText('&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;')).toBe('')
+    })
+
+    it('strips triple-encoded script tags', () => {
+      expect(sanitizeText('&amp;amp;lt;script&amp;amp;gt;alert(1)&amp;amp;lt;/script&amp;amp;gt;')).toBe('')
+    })
+
+    it('preserves plain text through multi-layer decode', () => {
+      expect(sanitizeText('salt &amp;amp; pepper')).toBe('salt & pepper')
+    })
+  })
+
+  describe('codepoint validation', () => {
+    it('replaces out-of-range hex codepoint with replacement character', () => {
+      expect(sanitizeText('a&#xFFFFFF;b')).toBe('a\uFFFDb')
+    })
+
+    it('replaces out-of-range decimal codepoint with replacement character', () => {
+      expect(sanitizeText('a&#99999999;b')).toBe('a\uFFFDb')
+    })
+
+    it('decodes valid supplementary plane codepoint (emoji)', () => {
+      expect(sanitizeText('&#x1F600;')).toBe('\u{1F600}')
+    })
+
+    it('decodes valid BMP codepoint normally', () => {
+      expect(sanitizeText('&#65;')).toBe('A')
+    })
+  })
+
   describe('non-string input guard', () => {
     it('returns empty string for undefined input', () => {
       expect(sanitizeText(undefined as unknown as string)).toBe('')

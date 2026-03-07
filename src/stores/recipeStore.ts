@@ -82,8 +82,8 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
     const { recipes } = get()
     const pantryItems = usePantryStore.getState().items
 
-    // Cache key: recipe ids + pantry ids. Recompute only when either changes.
-    const cacheKey = recipes.map((r) => r.id).join('\0') + '|' + pantryItems.map((p) => p.canonicalId).join('\0')
+    // Cache key: JSON-serialized recipe ids + pantry ids. Recompute only when either changes.
+    const cacheKey = JSON.stringify([recipes.map((r) => r.id), pantryItems.map((p) => p.canonicalId)])
     if (_rankedCache?.key === cacheKey) return _rankedCache.result
 
     const pantryCanonicalIds = new Set(pantryItems.map((p) => p.canonicalId))
