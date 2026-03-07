@@ -36,7 +36,7 @@ let _unsubscribe: (() => void) | null = null
 let _rankedCache: { key: string; result: RankedRecipe[] } | null = null
 
 /** Sanitize search input: truncate to 100 chars, strip regex special chars, lowercase + trim */
-function sanitizeSearch(raw: string): string {
+export function sanitizeSearch(raw: string): string {
   return raw.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '').toLowerCase().trim()
 }
 
@@ -83,7 +83,7 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
     const pantryItems = usePantryStore.getState().items
 
     // Cache key: recipe ids + pantry ids. Recompute only when either changes.
-    const cacheKey = recipes.map((r) => r.id).join(',') + '|' + pantryItems.map((p) => p.canonicalId).join(',')
+    const cacheKey = recipes.map((r) => r.id).join('\0') + '|' + pantryItems.map((p) => p.canonicalId).join('\0')
     if (_rankedCache?.key === cacheKey) return _rankedCache.result
 
     const pantryCanonicalIds = new Set(pantryItems.map((p) => p.canonicalId))

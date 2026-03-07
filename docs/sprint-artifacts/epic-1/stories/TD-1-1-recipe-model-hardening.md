@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-1: Recipe Data Model Hardening
 
-## Status: ready-for-dev
+## Status: done
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-1
 > **Priority:** P2 | **Estimated Effort:** 2 pts
@@ -28,18 +28,30 @@ As a **developer**, I want **runtime Zod validation at the Firestore boundary an
 ## Tasks / Subtasks
 
 ### Task 1: Add Runtime Validation (2 subtasks)
-- [ ] 1.1: Update `docToRecipe()` to use `RecipeSchema.safeParse()` with error logging for invalid docs
-- [ ] 1.2: Update `getRecipeById()` return path to use schema validation
+- [x] 1.1: Update `docToRecipe()` to use `StoredRecipeDocSchema.safeParse()` with error logging for invalid docs
+- [x] 1.2: Update `getRecipeById()` return path to use schema validation
 
 ### Task 2: Refactor Schema ID Handling (2 subtasks)
-- [ ] 2.1: Create `StoredRecipeDocSchema` (without `id`) for Firestore document shape
-- [ ] 2.2: Add `id` post-parse in converter functions
+- [x] 2.1: Create `StoredRecipeDocSchema` (without `id`) for Firestore document shape
+- [x] 2.2: Add `id` post-parse in converter functions
 
 ### Task 3: Derive Client Types from Zod (2 subtasks)
-- [ ] 3.1: Derive `RecipeIngredient` from `RecipeIngredientSchema` + `inPantry`
-- [ ] 3.2: Derive `RecipeStep` from `RecipeStepSchema`
+- [x] 3.1: Derive `RecipeIngredient` from `RecipeIngredientSchema` + `inPantry`
+- [x] 3.2: Derive `RecipeStep` from `RecipeStepSchema`
 
 ## Dev Notes
 - Source story: [1-1](./1.1-recipe-data-model.md)
 - Review findings: #1, #2, #4
 - Files affected: `src/types/recipe.ts`, `src/services/recipes.ts`, `src/types/recipe.test.ts`, `src/services/recipes.test.ts`
+- Self-review: 8.5/10, APPROVE (2026-03-06)
+- Session cost: $9.08
+- **Senior Developer Review (ECC):** 2026-03-06 | Agents: [code-reviewer, tdd-guide] | SIMPLE classification | 8.5/10 APPROVE | 3 quick fixes applied, 2 deferred (1→TD-1-3, 1 noted) | Review cost: $5.56
+
+### Deferred Review Findings (2026-03-06 code review)
+| TD Story | Description | Priority | Action |
+|----------|-------------|----------|--------|
+| TD-1-3 | subscribeToRecipes() service test coverage | P2 | ADDED_TO_EXISTING |
+| — | Recipe interface drift risk vs StoredRecipe (LOW, design observation) | P3 | NOTED |
+
+<!-- CITED: none -->
+<!-- ORDERING: clean -->

@@ -21,7 +21,7 @@ export type IngredientCategory = z.infer<typeof IngredientCategory>
 
 // --- Zod Schemas (stored shape in Firestore) ---
 
-const RecipeIngredientSchema = z.object({
+export const RecipeIngredientSchema = z.object({
   name: z.string().min(1),
   quantity: z.number().positive(),
   unit: z.string().min(1),
@@ -38,7 +38,7 @@ const IngredientGroupSchema = z.object({
   items: z.array(RecipeIngredientSchema).min(1),
 })
 
-const RecipeStepSchema = z.object({
+export const RecipeStepSchema = z.object({
   order: z.number().int().positive(),
   instruction: z.string().min(1),
   duration: z.number().nonnegative().optional(),
@@ -166,28 +166,16 @@ export const RecipeSchema = z.object({
 /** Stored recipe shape — validated by RecipeSchema, no client-side enrichment */
 export type StoredRecipe = z.infer<typeof RecipeSchema>
 
+/** Stored recipe doc shape — omits `id` (Firestore stores it as doc.id, not in body).
+ * Unknown fields are stripped (not rejected) to allow schema evolution. */
+export const StoredRecipeDocSchema = RecipeSchema.omit({ id: true })
+export type StoredRecipeDoc = z.infer<typeof StoredRecipeDocSchema>
+
 // --- Client-enriched interfaces (not stored in Firestore) ---
 
-export interface RecipeIngredient {
-  canonicalId?: string
-  name: string
-  quantity: number
-  unit: string
-  inPantry: boolean
-  category?: IngredientCategory
-  optional?: boolean
-  notes?: string
-  freezeExclude?: boolean
-  pantryItem?: boolean
-}
+export type RecipeIngredient = z.infer<typeof RecipeIngredientSchema> & { inPantry: boolean }
 
-export interface RecipeStep {
-  order: number
-  instruction: string
-  duration?: number
-  technique?: string
-  tip?: string
-}
+export type RecipeStep = z.infer<typeof RecipeStepSchema>
 
 export type NoveltyType = 'cuisine' | 'technique' | 'ingredient'
 

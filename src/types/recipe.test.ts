@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RecipeSchema } from './recipe'
+import { RecipeSchema, StoredRecipeDocSchema } from './recipe'
 
 const validRecipe = {
   id: 'test-recipe-1',
@@ -200,6 +200,16 @@ describe('RecipeSchema', () => {
       const result = RecipeSchema.safeParse({ ...validRecipe, complexity: 2.5 })
       expect(result.success).toBe(false)
     })
+
+    it('accepts prepTime 0', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, prepTime: 0 })
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts cookTime 0', () => {
+      const result = RecipeSchema.safeParse({ ...validRecipe, cookTime: 0 })
+      expect(result.success).toBe(true)
+    })
   })
 
   describe('ingredient validation', () => {
@@ -269,5 +279,73 @@ describe('RecipeSchema', () => {
       const result = RecipeSchema.safeParse({ ...validRecipe, name: 'A'.repeat(200) })
       expect(result.success).toBe(true)
     })
+  })
+})
+
+describe('StoredRecipeDocSchema', () => {
+  // Build a valid doc body — all fields from validRecipe MINUS id
+  const { id, ...validDocBody } = {
+    id: 'test-recipe-1',
+    name: 'Empanadas de Pino',
+    description: 'Classic Chilean empanadas with beef filling',
+    cuisine: 'Chilena',
+    techniques: ['hornear', 'picar'],
+    complexity: 3,
+    prepTime: 60,
+    cookTime: 25,
+    servings: 12,
+    ingredients: [
+      { name: 'Carne molida', quantity: 500, unit: 'g' },
+      { name: 'Cebolla', quantity: 3, unit: 'unidades', canonicalId: 'cebolla' },
+    ],
+    steps: [
+      { order: 1, instruction: 'Preparar el pino con carne y cebolla', duration: 30 },
+      { order: 2, instruction: 'Rellenar las masas y hornear' },
+    ],
+  }
+
+  it('parses a valid doc body (all required fields except id)', () => {
+    const result = StoredRecipeDocSchema.safeParse(validDocBody)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.name).toBe('Empanadas de Pino')
+      expect(result.data.ingredients).toHaveLength(2)
+    }
+  })
+
+  it('parsed result does not contain an id field', () => {
+    const result = StoredRecipeDocSchema.safeParse(validDocBody)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('id')
+    }
+  })
+
+  it('rejects doc body missing required name field', () => {
+    const { name, ...noName } = validDocBody
+    const result = StoredRecipeDocSchema.safeParse(noName)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const fields = result.error.issues.map((i) => i.path[0])
+      expect(fields).toContain('name')
+    }
+  })
+
+  it('strips unknown fields rather than rejecting them', () => {
+    const withExtra = { ...validDocBody, unknownField: 'should be stripped' }
+    const result = StoredRecipeDocSchema.safeParse(withExtra)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('unknownField')
+    }
+  })
+
+  it('strips id field when present in doc body', () => {
+    const withId = { ...validDocBody, id: 'should-be-stripped' }
+    const result = StoredRecipeDocSchema.safeParse(withId)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('id')
+    }
   })
 })

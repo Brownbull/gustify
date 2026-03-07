@@ -30,8 +30,10 @@ describe('BottomNav', () => {
 
   it('marks Inicio as active on / route', () => {
     renderNav('/')
-    expect(screen.getByTestId('nav-inicio').className).toContain('text-primary')
-    expect(screen.getByTestId('nav-recetas').className).not.toMatch(/(?<!\/)text-primary(?!\-)/)
+    const inicio = screen.getByTestId('nav-inicio')
+    const recetas = screen.getByTestId('nav-recetas')
+    expect(inicio.className).toContain('text-primary')
+    expect(recetas.className).toContain('text-primary-dark/40')
   })
 
   it('marks Recetas as active on /recipes route', () => {

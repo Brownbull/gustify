@@ -1,9 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRecipeStore } from '@/stores/recipeStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { getRecipeById } from '@/services/recipes'
 import type { StoredRecipe } from '@/types/recipe'
+
+const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -26,11 +28,22 @@ export default function RecipeDetailPage() {
 
     // Fallback: fetch by ID
     let cancelled = false
-    getRecipeById(id).then((result) => {
-      if (!cancelled) setRecipe(result)
-    })
+    getRecipeById(id)
+      .then((result) => {
+        if (!cancelled) setRecipe(result)
+      })
+      .catch(() => {
+        if (!cancelled) setRecipe(null)
+      })
     return () => { cancelled = true }
   }, [id, recipes])
+
+  // Build pantry lookup for availability indicators (must be before early returns)
+  const pantryLookup = useMemo(() => {
+    const canonicalIds = new Set(pantryItems.map((p) => p.canonicalId))
+    const namesLower = new Set(pantryItems.map((p) => p.name.toLowerCase()))
+    return { canonicalIds, namesLower }
+  }, [pantryItems])
 
   // Loading state
   if (recipe === undefined) {
@@ -61,16 +74,10 @@ export default function RecipeDetailPage() {
     )
   }
 
-  // Build pantry lookup for availability indicators
-  const pantryCanonicalIds = new Set(pantryItems.map((p) => p.canonicalId))
-  const pantryNamesLower = new Set(pantryItems.map((p) => p.name.toLowerCase()))
-
   function hasIngredient(ing: { canonicalId?: string; name: string }): boolean {
-    if (ing.canonicalId && pantryCanonicalIds.has(ing.canonicalId)) return true
-    return pantryNamesLower.has(ing.name.toLowerCase())
+    if (ing.canonicalId && pantryLookup.canonicalIds.has(ing.canonicalId)) return true
+    return pantryLookup.namesLower.has(ing.name.toLowerCase())
   }
-
-  const COMPLEXITY_LABELS = ['', 'Muy facil', 'Facil', 'Intermedio', 'Avanzado', 'Experto']
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto" data-testid="recipe-detail">
@@ -124,11 +131,11 @@ export default function RecipeDetailPage() {
         {/* Ingredients */}
         <h3 className="mt-6 text-sm font-semibold text-primary-dark">Ingredientes</h3>
         <ul className="mt-2 space-y-1.5" data-testid="recipe-ingredients">
-          {recipe.ingredients.map((ing) => {
+          {recipe.ingredients.map((ing, idx) => {
             const available = hasIngredient(ing)
             return (
               <li
-                key={ing.canonicalId ?? ing.name}
+                key={ing.canonicalId ?? `${ing.name}-${idx}`}
                 className="flex items-center gap-2 text-sm text-primary-dark"
               >
                 <span

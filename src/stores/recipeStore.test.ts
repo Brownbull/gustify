@@ -347,5 +347,15 @@ describe('recipeStore', () => {
       expect(result).toHaveLength(1)
       expect(result[0].name).toBe('Arroz con Pollo')
     })
+
+    it('applies triple-filter combo (search + cuisine + complexity)', () => {
+      // Only Arroz con Pollo matches: has "cebolla" ingredient, is Chilena, complexity 2
+      useRecipeStore.getState().setSearchQuery('cebolla')
+      useRecipeStore.getState().setCuisineFilter('Chilena')
+      useRecipeStore.getState().setComplexityFilter([1, 2])
+      const result = useRecipeStore.getState().getFilteredRecipes()
+      expect(result).toHaveLength(1)
+      expect(result[0].name).toBe('Arroz con Pollo')
+    })
   })
 })

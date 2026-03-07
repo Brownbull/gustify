@@ -27,7 +27,12 @@ As a **developer**, I want **component-level tests for RecipesPage UI states**, 
 - **When** the retry button is clicked
 - **Then** `unsubscribe()` and `subscribe()` are called in sequence
 
-### AC-4: Recipe List Renders in Ranked Order
+### AC-4: Zero Results State Component Test
+- **Given** filters are active and `getFilteredRecipes()` returns an empty array
+- **When** `RecipesPage` renders
+- **Then** "No se encontraron recetas" message with `data-testid="recipe-no-results"` is visible
+
+### AC-5: Recipe List Renders in Ranked Order
 - **Given** `recipeStore` has recipes with different pantry match percentages
 - **When** `RecipesPage` renders
 - **Then** `RecipeCard` components appear in descending match % order
@@ -39,6 +44,11 @@ As a **developer**, I want **component-level tests for RecipesPage UI states**, 
 - [ ] 1.2: Test loading state renders spinner
 - [ ] 1.3: Test empty state renders message
 - [ ] 1.4: Test error state renders message and retry button triggers re-subscription
+- [ ] 1.5: Test zero-results state shows "No se encontraron recetas" when filters active but no matches
+
+### Task 1.5: subscribeToRecipes Service Test (2 subtasks)
+- [ ] 1.5.1: Test subscribeToRecipes filters invalid docs via docToRecipe and logs errors
+- [ ] 1.5.2: Test subscribeToRecipes onError callback invocation on Firestore error
 
 ### Task 2: RecipeCard Component Test (2 subtasks)
 - [ ] 2.1: Test RecipeCard renders name, cuisine, match %, complexity, cook time
@@ -46,7 +56,7 @@ As a **developer**, I want **component-level tests for RecipesPage UI states**, 
 
 ## Dev Notes
 - Source story: [1-3-recipe-browsing](./1.3-recipe-browsing.md)
-- Review findings: #3 (TDD guide: AC-3/4/5 missing component tests)
+- Review findings: #3 (TDD guide: AC-3/4/5 missing component tests), 1-4 review #8 (AC-6 zero-results UI test), TD-1-1 review #1 (subscribeToRecipes service untested)
 - Files affected: `src/pages/RecipesPage.tsx`, `src/components/RecipeCard.tsx`
 - Use `@testing-library/react` for component rendering
 - Mock Zustand stores to control state per test case

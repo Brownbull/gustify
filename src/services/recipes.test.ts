@@ -125,6 +125,89 @@ describe('Recipe Service', () => {
     })
   })
 
+  describe('runtime validation', () => {
+    it('getAllRecipes filters out invalid docs and logs errors', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const invalidDoc = makeMockDoc('bad-recipe', { description: 'missing name field' })
+      const validDoc = makeMockDoc('good-recipe', mockRecipeData)
+      vi.mocked(getDocs).mockResolvedValue(makeMockSnapshot([invalidDoc, validDoc]) as never)
+
+      const recipes = await getAllRecipes()
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[recipes] Invalid recipe doc',
+        'bad-recipe',
+        expect.arrayContaining([expect.objectContaining({ code: expect.any(String) })]),
+      )
+      expect(recipes).toHaveLength(1)
+      expect(recipes[0].id).toBe('good-recipe')
+
+      consoleSpy.mockRestore()
+    })
+
+    it('getAllRecipes returns valid docs with id from doc.id', async () => {
+      const mockDocs = [makeMockDoc('recipe-abc', mockRecipeData)]
+      vi.mocked(getDocs).mockResolvedValue(makeMockSnapshot(mockDocs) as never)
+
+      const recipes = await getAllRecipes()
+
+      expect(recipes).toHaveLength(1)
+      expect(recipes[0].id).toBe('recipe-abc')
+      expect(recipes[0].name).toBe('Empanadas de Pino')
+    })
+
+    it('getAllRecipes with mix of valid and invalid docs returns only valid ones', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const docs = [
+        makeMockDoc('invalid-1', { name: 'No steps or ingredients' }),
+        makeMockDoc('valid-1', mockRecipeData),
+        makeMockDoc('invalid-2', { complexity: 'not-a-number' }),
+        makeMockDoc('valid-2', { ...mockRecipeData, name: 'Cazuela' }),
+      ]
+      vi.mocked(getDocs).mockResolvedValue(makeMockSnapshot(docs) as never)
+
+      const recipes = await getAllRecipes()
+
+      expect(consoleSpy).toHaveBeenCalledTimes(2)
+      expect(recipes).toHaveLength(2)
+      expect(recipes.map((r) => r.id)).toEqual(['valid-1', 'valid-2'])
+
+      consoleSpy.mockRestore()
+    })
+
+    it('getRecipeById returns null and logs error for invalid doc', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const invalidDoc = makeMockDoc('bad-recipe', { description: 'missing required fields' })
+      vi.mocked(getDoc).mockResolvedValue(invalidDoc as never)
+
+      const recipe = await getRecipeById('bad-recipe')
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[recipes] Invalid recipe doc',
+        'bad-recipe',
+        expect.arrayContaining([expect.objectContaining({ code: expect.any(String) })]),
+      )
+      expect(recipe).toBeNull()
+
+      consoleSpy.mockRestore()
+    })
+
+    it('getRecipeById returns validated recipe with id from snapshot.id', async () => {
+      const mockDoc = makeMockDoc('recipe-xyz', mockRecipeData)
+      vi.mocked(getDoc).mockResolvedValue(mockDoc as never)
+
+      const recipe = await getRecipeById('recipe-xyz')
+
+      expect(recipe).not.toBeNull()
+      expect(recipe!.id).toBe('recipe-xyz')
+      expect(recipe!.name).toBe('Empanadas de Pino')
+      expect(recipe!.complexity).toBe(3)
+    })
+  })
+
   describe('error propagation', () => {
     it('propagates Firestore errors from getAllRecipes', async () => {
       vi.mocked(getDocs).mockRejectedValue(new Error('Firestore unavailable'))

@@ -61,12 +61,13 @@ development_status:
   1-2-recipe-seed-script: done                  # 3 pts - 50+ Chilean recipes seeded to Firestore (DEPENDS: 1-1)
   1-3-recipe-browsing: done                    # 4 pts - RecipesPage rewrite + pantry match ranking (DEPENDS: 1-2)
   1-4-recipe-search-filtering: done               # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
-  1-5-recipe-detail-react-router: review           # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
+  1-5-recipe-detail-react-router: done              # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
 
-  TD-1-1-recipe-model-hardening: ready-for-dev   # 2 pts - Zod runtime validation + schema ID refactor + type derivation (DEPENDS: 1-1)
-  TD-1-2-seed-script-hardening: ready-for-dev   # 1 pt - Retry logic + efficient reads + category map (DEPENDS: 1-2)
+  TD-1-1-recipe-model-hardening: done   # 2 pts - Zod runtime validation + schema ID refactor + type derivation (DEPENDS: 1-1)
+  TD-1-2-seed-script-hardening: review   # 1 pt - Retry logic + efficient reads + category map (DEPENDS: 1-2)
   TD-1-3-recipe-browsing-component-tests: ready-for-dev  # 2 pts - Component tests for RecipesPage UI states (DEPENDS: 1-3)
   TD-1-4-recipe-ux-hardening: ready-for-dev              # 2 pts - Cross-store reactivity fix + modal a11y (DEPENDS: 1-4)
+  TD-1-5-db-string-sanitization: ready-for-dev          # 2 pts - Sanitize DB-sourced strings in recipe rendering (DEPENDS: 1-5)
 
   epic-1-retrospective: optional
 

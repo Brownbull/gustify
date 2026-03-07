@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-2: Seed Script Hardening
 
-## Status: ready-for-dev
+## Status: review
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-2
 > **Priority:** P3 | **Estimated Effort:** 1 pt
@@ -28,14 +28,14 @@ As a **developer**, I want **the recipe seed script to have retry logic, precise
 ## Tasks / Subtasks
 
 ### Task 1: Retry Logic (2 subtasks)
-- [ ] 1.1: Add retry wrapper with exponential backoff (max 3 retries, 1s/2s/4s)
-- [ ] 1.2: Apply to batch commit calls in `seed-recipes.ts`
+- [x] 1.1: Add retry wrapper with exponential backoff (max 3 retries, 1s/2s/4s)
+- [x] 1.2: Apply to batch commit calls in `seed-recipes.ts`
 
 ### Task 2: Efficient Reads (1 subtask)
-- [ ] 2.1: Replace `adminDb.collection('recipes').get()` with `.select().get()` for ID-only reads
+- [x] 2.1: Replace `adminDb.collection('recipes').get()` with `.select().get()` for ID-only reads
 
 ### Task 3: Category Map (1 subtask)
-- [ ] 3.1: Derive `CANONICAL_CATEGORY` from `IngredientCategory` type in `seed-recipes-helpers.ts`
+- [x] 3.1: Derive `CANONICAL_CATEGORY` from `IngredientCategory` type in `seed-recipes-helpers.ts`
 
 ## Dev Notes
 - Source story: [1-2](./1.2-recipe-seed-script.md)

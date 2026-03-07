@@ -1,0 +1,283 @@
+# ============================================================
+# HOUSEHOLD PROFILE INSTANCE
+# Your actual household data based on the project constraints.
+# ============================================================
+
+version: "1.0.0"
+
+household:
+  location:
+    city: "Villarrica"
+    region: "Araucanía"
+    country: "Chile"
+    notes: >
+      Southern Chile. Good access to local markets, seasonal produce,
+      standard Chilean meat cuts, and basic international ingredients.
+      Specialty Asian ingredients (gochugaru, shaoxing wine, etc.)
+      may require online ordering or substitution.
+
+  members:
+    - id: "gabe"
+      name: "Gabe"
+      birth_year: 1989
+      health_conditions: ["overweight"]
+      activity_level: "sedentary"
+      occupation_type: "office"
+      preferences:
+        protein_preference: "meat_heavy"
+        flavor_preferences:
+          - "bold"
+          - "spice_forward"
+          - "umami"
+          - "international"
+          - "korean"
+          - "chinese"
+          - "hungarian"
+          - "moroccan"
+        aversions:
+          - "cucumber"
+          - "watermelon"
+          - "melon"
+        spice_tolerance: "high"
+        portion_notes: "Prefers generous protein portions (200-250g cooked meat per serving)"
+
+    - id: "partner"
+      name: "Partner"
+      birth_year: 1978
+      health_conditions: ["lipedema", "overweight"]
+      activity_level: "sedentary"
+      occupation_type: "office"
+      preferences:
+        protein_preference: "balanced"
+        flavor_preferences:
+          - "mediterranean"
+          - "fresh"
+          - "herbal"
+        aversions: []
+        spice_tolerance: "medium"
+        portion_notes: >
+          Prefers more legumes and salad alongside protein.
+          Currently transitioning away from processed sweets.
+
+dietary_framework:
+  primary_diets:
+    - "dirty_keto"
+    - "mediterranean"
+  goals:
+    - "weight_loss"
+    - "blood_sugar_control"
+    - "reduce_processed_foods"
+    - "reduce_sugar"
+  restrictions:
+    avoid_ingredients: []
+    limit_ingredients:
+      - ingredient: "sugar"
+        reason: "Transitioning away. Use natural sweeteners or keto alternatives when needed."
+      - ingredient: "refined_flour"
+        reason: "Reducing processed carbs. Prefer almond flour or other keto alternatives."
+      - ingredient: "ultra_processed_foods"
+        reason: "Core goal: eliminate packaged and ultra-processed ingredients."
+    preferred_sweeteners:
+      - "erythritol"
+      - "stevia"
+      - "monk_fruit"
+      - "allulose"
+
+cooking_system:
+  workflow:
+    strategy: "batch_cook_freeze"
+    description: >
+      Cook in large batches (1-2kg protein base). Portion into individual
+      servings. Vacuum seal. Freeze using IQF method. Reheat per portion
+      as needed via water bath, oven, or stovetop. Never fry.
+    typical_batch_size: "6-10 portions per recipe"
+    portion_weight_grams:
+      min: 300
+      max: 500
+      typical: 400
+
+  allowed_methods:
+    - "baking"
+    - "roasting"
+    - "braising"
+    - "stewing"
+    - "sauteing"
+    - "stir_frying"
+    - "boiling"
+    - "steaming"
+    - "slow_cooking"
+    - "water_bath_reheating"
+    - "oven_reheating"
+    - "stovetop_reheating"
+
+  forbidden_methods:
+    - "deep_frying"
+    - "shallow_frying"
+
+  equipment:
+    - name: "vacuum_sealer"
+      notes: "Primary preservation tool"
+    - name: "silicone_molds"
+      notes: "For IQF portioning — freeze portions solid before vacuum sealing"
+    - name: "oven"
+      notes: "Standard home oven"
+    - name: "stovetop"
+      notes: "Standard"
+    - name: "large_pot"
+      notes: "For water bath reheating and batch stews"
+
+  freezing_rules:
+    method: >
+      IQF (Individual Quick Freeze): Portion into silicone molds or spread
+      on lined trays → Freeze solid (4-6 hours) → Vacuum seal each portion
+      → Label with date, recipe name, and weight
+    max_storage_months: 3
+    ingredients_to_add_at_reheat:
+      - ingredient: "cream"
+        reason: "Separates when frozen. Add 80-100ml per portion during reheating."
+      - ingredient: "cheese"
+        reason: "Add at gratinating/serving, not before freezing."
+      - ingredient: "fresh_herbs"
+        reason: "Lose color and texture. Add at serving."
+      - ingredient: "fried_egg"
+        reason: "Cook fresh at serving."
+      - ingredient: "avocado"
+        reason: "Texture degrades when frozen."
+      - ingredient: "yogurt"
+        reason: "Separates. Serve as fresh condiment."
+    vegetable_rule: >
+      Cook vegetables to ~70% doneness before freezing. They finish
+      cooking during reheating and maintain better texture.
+    cooling_rule: >
+      Cool to room temperature within 2 hours. Spread on trays
+      for rapid cooling. Portion only when cooled.
+
+  reheating_methods:
+    - method: "water_bath"
+      temperature: "70-80°C"
+      duration: "25-35 min"
+      notes: "Default method. Submerge sealed bag. Do not boil."
+    - method: "oven"
+      temperature: "180-200°C"
+      duration: "15-25 min"
+      notes: "For items needing browning. Thaw first if possible."
+    - method: "stovetop"
+      temperature: "medium-low"
+      duration: "5-10 min"
+      notes: "Open bag, transfer to pan. Good for sauced dishes."
+
+constraints:
+  hard:
+    - id: "no_frying"
+      rule: "Never deep fry or shallow fry. Sautéing and stir-frying with minimal oil are acceptable."
+      category: "method"
+    - id: "no_ultra_processed"
+      rule: "No ultra-processed ingredients. All components should be whole foods or homemade."
+      category: "ingredient"
+    - id: "freeze_compatible"
+      rule: "Every recipe must be compatible with vacuum seal freezing and water bath reheating."
+      category: "workflow"
+    - id: "cream_at_reheat"
+      rule: "Dairy cream must never be included in frozen portions. Add only at reheating time."
+      category: "workflow"
+    - id: "vegetables_undercook"
+      rule: "Vegetables destined for freezing must be cooked to ~70% doneness."
+      category: "workflow"
+    - id: "batch_minimum"
+      rule: "Recipe must yield at least 4 portions, ideally 6-10."
+      category: "workflow"
+    - id: "no_cucumber"
+      rule: "Never include cucumber in any recipe (member aversion)."
+      category: "ingredient"
+    - id: "no_melon"
+      rule: "Never include watermelon or melon in any recipe (member aversion)."
+      category: "ingredient"
+
+  soft:
+    - id: "bold_international_flavors"
+      rule: "Prefer bold, spice-forward international cuisines over plain or familiar Chilean defaults."
+      priority: "high"
+    - id: "dual_member_friendly"
+      rule: "Design recipes where the base works for both members — he adds more meat, she adds legumes/salad."
+      priority: "medium"
+    - id: "neutral_base_splitting"
+      rule: "When feasible, create a neutral base that can branch into multiple flavor profiles."
+      priority: "medium"
+    - id: "low_sugar"
+      rule: "Minimize added sugars. When sweetness is needed, use keto-friendly sweeteners."
+      priority: "high"
+    - id: "pause_points"
+      rule: "Include clear pause points for the batch cooking workflow."
+      priority: "medium"
+    - id: "chilean_cuts"
+      rule: "Reference Chilean meat cut names (posta negra, posta paleta, etc.) when applicable."
+      priority: "low"
+
+ingredient_availability:
+  always_available:
+    - "eggs"
+    - "onions"
+    - "garlic"
+    - "butter"
+    - "cream"
+    - "milk"
+    - "olive_oil"
+    - "vegetable_oil"
+    - "chicken_thighs"
+    - "chicken_breast"
+    - "ground_beef"
+    - "ground_pork"
+    - "salt"
+    - "black_pepper"
+    - "rice"
+  commonly_available:
+    - "bell_peppers"
+    - "tomatoes"
+    - "potatoes"
+    - "zucchini"
+    - "mushrooms"
+    - "cheese"
+    - "parmesan"
+    - "longaniza"
+    - "prieta"
+    - "merken"
+    - "paprika"
+    - "smoked_paprika"
+    - "cumin"
+    - "oregano"
+    - "coriander"
+    - "soy_sauce"
+    - "honey"
+    - "nuts"
+    - "almonds"
+    - "walnuts"
+  specialty_requires_sourcing:
+    - "gochugaru"
+    - "gochujang"
+    - "shaoxing_wine"
+    - "five_spice_powder"
+    - "saffron"
+    - "preserved_lemons"
+    - "coconut_milk"
+    - "fish_sauce"
+    - "miso_paste"
+    - "rice_vinegar"
+  chilean_cuts:
+    - local_name: "posta_negra"
+      description: "Eye of round. Lean, relatively tender."
+      best_for: ["escalopa", "filete", "stir_fry", "quick_sear"]
+    - local_name: "posta_paleta"
+      description: "Shoulder clod. Lean, good for slow cooking."
+      best_for: ["stew", "braised", "pulled_beef", "goulash"]
+    - local_name: "punta_paleta"
+      description: "Shoulder clod heart. More marbled."
+      best_for: ["pulled_beef", "stew", "curry", "slow_braise"]
+    - local_name: "osobuco"
+      description: "Shank cross-cut with marrow."
+      best_for: ["stew", "braised", "ossobuco"]
+    - local_name: "tapapecho"
+      description: "Brisket."
+      best_for: ["braised", "stew", "slow_roast"]
+    - local_name: "asiento"
+      description: "Tri-tip."
+      best_for: ["roast", "grill", "oven"]

@@ -45,8 +45,10 @@ vi.mock('@/stores/pantryStore', () => ({
     selector({ items: mockPantryItems }),
 }))
 
+const mockGetRecipeById = vi.fn().mockResolvedValue(null)
+
 vi.mock('@/services/recipes', () => ({
-  getRecipeById: vi.fn().mockResolvedValue(null),
+  getRecipeById: (...args: unknown[]) => mockGetRecipeById(...args),
 }))
 
 function renderWithRoute(recipeId: string) {
@@ -141,5 +143,66 @@ describe('RecipeDetailPage', () => {
 
     const backLink = screen.getByText('← Recetas')
     expect(backLink).toHaveAttribute('href', '/recipes')
+  })
+
+  it('shows loading state before recipe resolves', () => {
+    mockGetRecipeById.mockReturnValue(new Promise(() => {})) // never resolves
+    renderWithRoute('unknown-pending')
+
+    expect(screen.getByTestId('recipe-detail-loading')).toBeInTheDocument()
+    expect(screen.getByText('Cargando receta...')).toBeInTheDocument()
+  })
+
+  it('loads recipe via Firestore fallback when not in store', async () => {
+    const firestoreRecipe = {
+      ...mockRecipes[0],
+      id: 'firestore-only',
+      name: 'Cazuela de Ave',
+    }
+    mockGetRecipeById.mockResolvedValue(firestoreRecipe)
+
+    renderWithRoute('firestore-only')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recipe-detail')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Cazuela de Ave')).toBeInTheDocument()
+    expect(mockGetRecipeById).toHaveBeenCalledWith('firestore-only')
+  })
+
+  it('shows not-found when Firestore fetch rejects', async () => {
+    mockGetRecipeById.mockRejectedValue(new Error('Network error'))
+
+    renderWithRoute('error-recipe')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recipe-not-found')).toBeInTheDocument()
+    })
+  })
+
+  it('displays ingredient quantity and unit', async () => {
+    renderWithRoute('recipe-1')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recipe-ingredients')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText(/500 g Carne molida/)).toBeInTheDocument()
+    expect(screen.getByText(/3 unidades Cebolla/)).toBeInTheDocument()
+    expect(screen.getByText(/12 unidades Aceitunas/)).toBeInTheDocument()
+  })
+
+  it('renders steps in correct order', async () => {
+    renderWithRoute('recipe-1')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recipe-steps')).toBeInTheDocument()
+    })
+
+    const stepItems = screen.getByTestId('recipe-steps').querySelectorAll('li')
+    expect(stepItems).toHaveLength(3)
+    expect(stepItems[0]).toHaveTextContent('Picar la cebolla en cubos pequeños.')
+    expect(stepItems[1]).toHaveTextContent('Cocinar la carne con la cebolla.')
+    expect(stepItems[2]).toHaveTextContent('Rellenar las masas y hornear a 200°C.')
   })
 })

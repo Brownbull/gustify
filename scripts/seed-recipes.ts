@@ -18,12 +18,41 @@ const app = initializeApp({
 
 const adminDb = getFirestore(app)
 
+async function commitWithRetry(
+  batch: ReturnType<typeof adminDb.batch>,
+  batchNumber: number,
+  docCount: number,
+  maxRetries = 3,
+): Promise<boolean> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await batch.commit()
+      return true
+    } catch (e) {
+      if (attempt < maxRetries) {
+        const delay = 1000 * 2 ** attempt // 1s, 2s, 4s, ...
+        console.warn(
+          `  Batch ${batchNumber} attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
+          e,
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      } else {
+        console.error(
+          `  ERROR: Batch ${batchNumber} (${docCount} docs) failed after ${maxRetries} retries:`,
+          e,
+        )
+      }
+    }
+  }
+  return false
+}
+
 async function seedRecipes() {
   console.log('Seeding recipes into staging Firestore...\n')
   console.log(`Total seed recipes: ${SEED_RECIPES.length}\n`)
 
   // Check existing recipes for idempotency
-  const existingSnapshot = await adminDb.collection('recipes').get()
+  const existingSnapshot = await adminDb.collection('recipes').select().get()
   const existingIds = new Set(existingSnapshot.docs.map((doc) => doc.id))
 
   const newRecipes = SEED_RECIPES.filter((r) => !existingIds.has(r.id))
@@ -54,7 +83,8 @@ async function seedRecipes() {
   console.log(`  Writing ${newRecipes.length} new recipes...\n`)
 
   const BATCH_SIZE = 500
-  let batchCount = 0
+  let batchNumber = 0
+  let successCount = 0
   let batch = adminDb.batch()
   let inBatch = 0
   let errorCount = 0
@@ -70,13 +100,13 @@ async function seedRecipes() {
     inBatch++
 
     if (inBatch >= BATCH_SIZE) {
-      try {
-        await batch.commit()
-        batchCount++
-        console.log(`  Batch ${batchCount} committed (${inBatch} docs)`)
-      } catch (e) {
+      batchNumber++
+      const success = await commitWithRetry(batch, batchNumber, inBatch)
+      if (success) {
+        successCount++
+        console.log(`  Batch ${batchNumber} committed (${inBatch} docs)`)
+      } else {
         errorCount += inBatch
-        console.error(`  ERROR committing batch ${batchCount + 1} (${inBatch} docs):`, e)
       }
       batch = adminDb.batch()
       inBatch = 0
@@ -84,13 +114,13 @@ async function seedRecipes() {
   }
 
   if (inBatch > 0) {
-    try {
-      await batch.commit()
-      batchCount++
-      console.log(`  Batch ${batchCount} committed (${inBatch} docs)`)
-    } catch (e) {
+    batchNumber++
+    const success = await commitWithRetry(batch, batchNumber, inBatch)
+    if (success) {
+      successCount++
+      console.log(`  Batch ${batchNumber} committed (${inBatch} docs)`)
+    } else {
       errorCount += inBatch
-      console.error(`  ERROR committing batch ${batchCount + 1} (${inBatch} docs):`, e)
     }
   }
 
@@ -100,7 +130,7 @@ async function seedRecipes() {
   if (errorCount > 0) {
     console.log(`Errors: ${errorCount}`)
   }
-  console.log(`Batches: ${batchCount}`)
+  console.log(`Batches: ${successCount}/${batchNumber}`)
 }
 
 seedRecipes()

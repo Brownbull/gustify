@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useRecipeStore } from '@/stores/recipeStore'
+import { useRecipeStore, sanitizeSearch } from '@/stores/recipeStore'
 
 interface RecipeFiltersProps {
   cuisines: string[]
@@ -29,7 +29,7 @@ export default function RecipeFilters({ cuisines }: RecipeFiltersProps) {
     if (searchQuery === '' && localSearch !== '') {
       setLocalSearch('')
     }
-  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps — intentionally omits localSearch: only syncs on store-driven clears, not external non-empty updates
 
   // Clear debounce timer on unmount
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function RecipeFilters({ cuisines }: RecipeFiltersProps) {
     }, 300)
   }
 
-  const hasActiveFilters = searchQuery !== '' || cuisineFilter !== null || complexityFilter !== null
+  const hasActiveFilters = sanitizeSearch(searchQuery) !== '' || cuisineFilter !== null || complexityFilter !== null
 
   return (
     <div className="space-y-3 px-4 pt-2 pb-1" data-testid="recipe-filters">

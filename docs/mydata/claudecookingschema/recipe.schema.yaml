@@ -1,0 +1,554 @@
+# ============================================================
+# RECIPE SCHEMA
+# Defines the format for storing recipes in the application.
+# Designed for batch cooking, freezing, and reheating workflows.
+# ============================================================
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: Recipe
+description: >
+  A recipe formatted for batch cooking, vacuum seal freezing,
+  and controlled reheating. Includes metadata for meal planning,
+  pantry tracking, and dietary analysis.
+type: object
+required:
+  - id
+  - version
+  - meta
+  - servings
+  - ingredients
+  - method
+  - storage
+
+properties:
+
+  # ----------------------------------------------------------
+  # IDENTIFICATION
+  # ----------------------------------------------------------
+  id:
+    type: string
+    format: uuid
+    description: Unique recipe identifier
+
+  version:
+    type: string
+    description: Recipe version (for iteration tracking)
+    example: "1.0.0"
+
+  created_at:
+    type: string
+    format: date-time
+
+  updated_at:
+    type: string
+    format: date-time
+
+  source:
+    type: object
+    description: Where this recipe came from
+    properties:
+      type:
+        type: string
+        enum: [ai_generated, manual, imported, adapted]
+      origin:
+        type: string
+        description: >
+          Original source description (e.g., "Claude project chat",
+          "adapted from Maangchi", "family recipe")
+      url:
+        type: string
+        format: uri
+      ai_model:
+        type: string
+        description: If AI-generated, which model produced it
+      generation_prompt:
+        type: string
+        description: The prompt or context used to generate this recipe
+
+  # ----------------------------------------------------------
+  # METADATA
+  # ----------------------------------------------------------
+  meta:
+    type: object
+    required: [title, cuisine, tags, dietary_profile]
+    properties:
+      title:
+        type: string
+        example: "Pollo al Pimentón Estilo Húngaro"
+
+      title_original:
+        type: string
+        description: Original name in the cuisine's language
+        example: "Csirkepaprikás"
+
+      description:
+        type: string
+        description: Brief description of the dish
+        example: >
+          Hungarian-style chicken braised in a paprika and onion sauce.
+          Cream added at reheating for a silky finish.
+
+      cuisine:
+        type: string
+        example: "Hungarian"
+
+      cuisine_tags:
+        type: array
+        items:
+          type: string
+        example: ["european", "eastern_european", "hungarian"]
+
+      tags:
+        type: array
+        description: Searchable tags for filtering
+        items:
+          type: string
+        example:
+          - "chicken"
+          - "stew"
+          - "paprika"
+          - "batch_friendly"
+          - "freeze_friendly"
+          - "bold_flavor"
+          - "comfort_food"
+
+      dietary_profile:
+        type: object
+        description: Nutritional/dietary classification of this recipe
+        properties:
+          diets_compatible:
+            type: array
+            items:
+              type: string
+              enum:
+                - dirty_keto
+                - strict_keto
+                - mediterranean
+                - paleo
+                - low_carb
+                - gluten_free
+                - dairy_free
+                - whole30
+                - balanced
+            example: ["dirty_keto", "mediterranean"]
+          is_low_sugar:
+            type: boolean
+            example: true
+          is_processed_free:
+            type: boolean
+            description: Contains no ultra-processed ingredients
+            example: true
+          estimated_carbs_per_serving:
+            type: string
+            description: Rough carb estimate (low/medium/high or grams)
+            example: "low (~8g net)"
+
+      difficulty:
+        type: string
+        enum: [easy, medium, hard]
+        example: "easy"
+
+      active_time_minutes:
+        type: integer
+        description: Hands-on cooking time
+        example: 30
+
+      total_time_minutes:
+        type: integer
+        description: Total time including passive cooking
+        example: 75
+
+      member_suitability:
+        type: object
+        description: >
+          How well this recipe suits each household member.
+          References member IDs from the household profile.
+        additionalProperties:
+          type: object
+          properties:
+            score:
+              type: string
+              enum: [excellent, good, acceptable, poor]
+            notes:
+              type: string
+        example:
+          gabe:
+            score: "excellent"
+            notes: "Meat-forward, bold flavor, batch-friendly"
+          partner:
+            score: "good"
+            notes: "Can be served with extra salad on the side"
+
+  # ----------------------------------------------------------
+  # SERVINGS & SCALING
+  # ----------------------------------------------------------
+  servings:
+    type: object
+    required: [base_yield, portion_weight_grams]
+    properties:
+      base_yield:
+        type: integer
+        description: Number of portions this recipe makes as written
+        example: 8
+      portion_weight_grams:
+        type: integer
+        description: Approximate weight per portion
+        example: 400
+      scale_notes:
+        type: string
+        description: Notes on scaling up or down
+        example: "Scales linearly. For 4 portions, halve all ingredients."
+
+  # ----------------------------------------------------------
+  # INGREDIENTS
+  # ----------------------------------------------------------
+  ingredients:
+    type: array
+    minItems: 1
+    items:
+      $ref: "#/$defs/IngredientGroup"
+
+  # ----------------------------------------------------------
+  # METHOD (COOKING STEPS)
+  # ----------------------------------------------------------
+  method:
+    type: object
+    required: [phases]
+    properties:
+      phases:
+        type: array
+        description: >
+          Cooking is organized into phases. Each phase has steps.
+          Phases help identify pause points for batch cooking.
+        minItems: 1
+        items:
+          $ref: "#/$defs/Phase"
+
+      timing_coordination:
+        type: string
+        description: >
+          Overview of how to coordinate timing across phases,
+          especially when multitasking.
+        example: >
+          While the chicken braises (Phase 2, 35 min passive),
+          prepare the vegetables and mise en place for portioning.
+
+      troubleshooting:
+        type: array
+        items:
+          type: object
+          properties:
+            problem:
+              type: string
+            solution:
+              type: string
+        example:
+          - problem: "Sauce too thin after braising"
+            solution: "Remove lid and reduce on medium heat for 5-10 min"
+          - problem: "Chicken dry after reheating"
+            solution: "May have overcooked initially. Next time, pull 5 min earlier."
+
+  # ----------------------------------------------------------
+  # STORAGE & REHEATING
+  # ----------------------------------------------------------
+  storage:
+    type: object
+    required: [freezing, reheating]
+    properties:
+      freezing:
+        type: object
+        properties:
+          is_freezable:
+            type: boolean
+            example: true
+          method:
+            type: string
+            description: How to freeze this specific recipe
+            example: >
+              Portion into silicone molds (400g each). Freeze solid 4-6 hours.
+              Vacuum seal each portion. Label with date and recipe name.
+          max_storage_months:
+            type: integer
+            example: 3
+          freeze_without:
+            type: array
+            description: Ingredients to exclude from frozen portions
+            items:
+              type: object
+              properties:
+                ingredient:
+                  type: string
+                reason:
+                  type: string
+                add_at:
+                  type: string
+                  description: When to add this ingredient instead
+            example:
+              - ingredient: "cream"
+                reason: "Separates when frozen"
+                add_at: "Add 80-100ml per portion during reheating, warm gently without boiling"
+              - ingredient: "fresh parsley"
+                reason: "Loses color and texture"
+                add_at: "Garnish at serving"
+          pre_freeze_notes:
+            type: string
+            description: Special instructions before freezing
+            example: >
+              Cool to room temperature within 2 hours.
+              Vegetables should be at ~70% doneness before portioning.
+
+      reheating:
+        type: array
+        description: >
+          Reheating methods in order of preference.
+          First method is the recommended default.
+        items:
+          type: object
+          required: [method, instructions]
+          properties:
+            method:
+              type: string
+              enum:
+                - water_bath
+                - oven
+                - stovetop
+                - microwave
+            temperature:
+              type: string
+            duration:
+              type: string
+            instructions:
+              type: string
+            post_reheat_steps:
+              type: array
+              description: Steps to perform after reheating (e.g., adding cream)
+              items:
+                type: string
+        example:
+          - method: "water_bath"
+            temperature: "70-80°C"
+            duration: "25-35 min"
+            instructions: "Submerge vacuum-sealed bag in heated water. Do not boil."
+            post_reheat_steps:
+              - "Transfer to saucepan over medium-low heat"
+              - "Add 80-100ml cream per portion"
+              - "Warm gently 2-3 min without boiling"
+              - "Serve over rice or with bread"
+          - method: "stovetop"
+            temperature: "medium-low"
+            duration: "8-12 min"
+            instructions: "Thaw overnight in fridge. Open bag, transfer to pan."
+            post_reheat_steps:
+              - "Add cream once warmed through"
+
+      fresh_accompaniments:
+        type: array
+        description: >
+          Suggested sides or accompaniments to prepare fresh at serving time
+        items:
+          type: object
+          properties:
+            item:
+              type: string
+            notes:
+              type: string
+        example:
+          - item: "Steamed rice"
+            notes: "Can also be batch-cooked and frozen separately"
+          - item: "Green salad"
+            notes: "For her — adds freshness and fiber"
+
+  # ----------------------------------------------------------
+  # PANTRY INTEGRATION
+  # ----------------------------------------------------------
+  pantry:
+    type: object
+    description: >
+      Data for pantry tracking integration.
+      Populated by the app, not by the recipe author.
+    properties:
+      last_cooked:
+        type: string
+        format: date-time
+      times_cooked:
+        type: integer
+      current_frozen_portions:
+        type: integer
+      rating:
+        type: number
+        minimum: 1
+        maximum: 5
+        description: Household rating after trying the recipe
+      notes_from_cooking:
+        type: array
+        description: Notes captured after actually cooking this recipe
+        items:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+            note:
+              type: string
+        example:
+          - date: "2026-01-20"
+            note: "Used posta paleta instead of chicken thighs. Needed 30 min extra braising."
+
+  # ----------------------------------------------------------
+  # NUTRITIONAL INFO (OPTIONAL)
+  # ----------------------------------------------------------
+  nutrition_per_serving:
+    type: object
+    description: Approximate nutritional info per portion. Optional.
+    properties:
+      calories:
+        type: integer
+      protein_grams:
+        type: number
+      fat_grams:
+        type: number
+      net_carbs_grams:
+        type: number
+      fiber_grams:
+        type: number
+      notes:
+        type: string
+        example: "Estimates exclude cream added at reheating (add ~80 kcal)"
+
+# ============================================================
+# DEFINITIONS
+# ============================================================
+$defs:
+
+  IngredientGroup:
+    type: object
+    required: [group_name, items]
+    properties:
+      group_name:
+        type: string
+        description: Section name (e.g., "Chicken", "Sauce", "Vegetables")
+        example: "Sauce"
+      items:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/Ingredient"
+
+  Ingredient:
+    type: object
+    required: [name, quantity, unit]
+    properties:
+      name:
+        type: string
+        example: "paprika ahumada"
+      quantity:
+        type: number
+        example: 2
+      unit:
+        type: string
+        enum:
+          - g
+          - kg
+          - ml
+          - l
+          - tsp
+          - tbsp
+          - cup
+          - unit
+          - pinch
+          - to_taste
+        example: "tbsp"
+      notes:
+        type: string
+        description: Preparation notes, substitutions, etc.
+        example: "Hungarian sweet paprika preferred. Smoked works too."
+      optional:
+        type: boolean
+        default: false
+      category:
+        type: string
+        enum:
+          - protein
+          - vegetable
+          - fruit
+          - dairy
+          - fat
+          - spice
+          - condiment
+          - grain
+          - legume
+          - liquid
+          - other
+        example: "spice"
+      pantry_item:
+        type: boolean
+        description: >
+          If true, this is a common pantry staple (salt, oil, etc.)
+          and may not need to appear on shopping lists.
+        default: false
+      freeze_exclude:
+        type: boolean
+        description: >
+          If true, this ingredient must NOT be included in frozen portions.
+          It should be added at reheating/serving time.
+        default: false
+
+  Phase:
+    type: object
+    required: [name, steps]
+    properties:
+      name:
+        type: string
+        description: Phase name
+        example: "Braise the Chicken"
+      duration_minutes:
+        type: integer
+        description: Total time for this phase
+        example: 40
+      is_pause_point:
+        type: boolean
+        description: >
+          Can the cook stop here and continue later?
+          Important for batch cooking workflow.
+        default: false
+      pause_point_notes:
+        type: string
+        description: What to do if pausing at this point
+        example: >
+          At this point the dish is at ~70% doneness.
+          Cool and portion for freezing if batch cooking.
+      steps:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          required: [instruction]
+          properties:
+            step_number:
+              type: integer
+            instruction:
+              type: string
+            duration_minutes:
+              type: integer
+            temperature:
+              type: string
+            technique:
+              type: string
+              description: The cooking technique used in this step
+              enum:
+                - sauteing
+                - braising
+                - roasting
+                - baking
+                - boiling
+                - steaming
+                - stir_frying
+                - simmering
+                - resting
+                - mixing
+                - marinating
+                - portioning
+                - other
+            tip:
+              type: string
+              description: Helpful tip for this step

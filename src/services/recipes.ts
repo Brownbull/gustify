@@ -10,19 +10,25 @@ import {
   type DocumentData,
 } from 'firebase/firestore'
 import { db } from '@/config/firebase'
+import { StoredRecipeDocSchema } from '@/types/recipe'
 import type { StoredRecipe } from '@/types/recipe'
 
 function recipesPath(): string {
   return 'recipes'
 }
 
-function docToRecipe(d: QueryDocumentSnapshot<DocumentData>): StoredRecipe {
-  return { ...d.data(), id: d.id } as StoredRecipe
+function docToRecipe(d: QueryDocumentSnapshot<DocumentData>): StoredRecipe | null {
+  const result = StoredRecipeDocSchema.safeParse(d.data())
+  if (!result.success) {
+    console.error('[recipes] Invalid recipe doc', d.id, result.error.issues)
+    return null
+  }
+  return { ...result.data, id: d.id }
 }
 
 export async function getAllRecipes(): Promise<StoredRecipe[]> {
   const snapshot = await getDocs(collection(db, recipesPath()))
-  return snapshot.docs.map(docToRecipe)
+  return snapshot.docs.map(docToRecipe).filter((r): r is StoredRecipe => r !== null)
 }
 
 export async function getRecipeById(
@@ -34,7 +40,12 @@ export async function getRecipeById(
 
   if (!snapshot.exists()) return null
 
-  return { ...snapshot.data(), id: snapshot.id } as StoredRecipe
+  const result = StoredRecipeDocSchema.safeParse(snapshot.data())
+  if (!result.success) {
+    console.error('[recipes] Invalid recipe doc', snapshot.id, result.error.issues)
+    return null
+  }
+  return { ...result.data, id: snapshot.id }
 }
 
 const RECIPE_LIMIT = 200
@@ -51,7 +62,7 @@ export function subscribeToRecipes(
   return onSnapshot(
     q,
     (snapshot) => {
-      const recipes = snapshot.docs.map(docToRecipe)
+      const recipes = snapshot.docs.map(docToRecipe).filter((r): r is StoredRecipe => r !== null)
       callback(recipes)
     },
     (error) => {

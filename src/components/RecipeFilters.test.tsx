@@ -20,6 +20,7 @@ let mockStoreState = {
 
 vi.mock('@/stores/recipeStore', () => ({
   useRecipeStore: (selector: (s: typeof mockStoreState) => unknown) => selector(mockStoreState),
+  sanitizeSearch: (raw: string) => raw.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '').toLowerCase().trim(),
 }))
 
 const CUISINES = ['Chilena', 'Italiana', 'Peruana']
@@ -118,5 +119,31 @@ describe('RecipeFilters', () => {
     render(<RecipeFilters cuisines={CUISINES} />)
     fireEvent.click(screen.getByText('Limpiar filtros'))
     expect(mockClearFilters).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows clear button when only cuisine filter is active', () => {
+    mockStoreState.cuisineFilter = 'Chilena'
+    render(<RecipeFilters cuisines={CUISINES} />)
+    expect(screen.getByText('Limpiar filtros')).toBeInTheDocument()
+  })
+
+  it('shows clear button when only complexity filter is active', () => {
+    mockStoreState.complexityFilter = [1, 2]
+    render(<RecipeFilters cuisines={CUISINES} />)
+    expect(screen.getByText('Limpiar filtros')).toBeInTheDocument()
+  })
+
+  it('clears search input when inline clear button is clicked', () => {
+    render(<RecipeFilters cuisines={CUISINES} />)
+    const input = screen.getByPlaceholderText('Buscar recetas...')
+
+    fireEvent.change(input, { target: { value: 'pollo' } })
+    expect(input).toHaveValue('pollo')
+
+    fireEvent.click(screen.getByLabelText('Limpiar busqueda'))
+    expect(input).toHaveValue('')
+
+    act(() => { vi.advanceTimersByTime(300) })
+    expect(mockSetSearchQuery).toHaveBeenCalledWith('')
   })
 })

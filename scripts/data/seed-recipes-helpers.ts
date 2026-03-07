@@ -1,4 +1,5 @@
 import type { StoredRecipe } from '../../src/types/recipe.js'
+import type { IngredientCategory } from '../../src/types/ingredient.js'
 import { CANONICAL_INGREDIENTS } from './canonical-ingredients.js'
 
 // SeedRecipe requires source to be { type: 'seed' }
@@ -9,20 +10,21 @@ export type SeedRecipe = StoredRecipe & {
   dietaryProfile: { dietsCompatible: string[] }
 }
 
-// Build lookup: canonicalId -> recipe IngredientCategory
+// All valid IngredientCategory values — compile error if type gains a new member
+const INGREDIENT_CATEGORIES = [
+  'Protein', 'Vegetable', 'Fruit', 'Grain',
+  'Dairy', 'Spice', 'Herb', 'Condiment', 'Other',
+] as const satisfies readonly IngredientCategory[]
+
+// Derive lowercase recipe category from IngredientCategory (forward-compatible)
+const CATEGORY_MAP: Record<IngredientCategory, string> = Object.fromEntries(
+  INGREDIENT_CATEGORIES.map((c) => [c, c.toLowerCase()]),
+) as Record<IngredientCategory, string>
+
+// Build lookup: canonicalId -> recipe ingredient category
 const CANONICAL_CATEGORY: Record<string, string> = {}
 for (const c of CANONICAL_INGREDIENTS) {
-  const map: Record<string, string> = {
-    Protein: 'protein',
-    Vegetable: 'vegetable',
-    Fruit: 'fruit',
-    Dairy: 'dairy',
-    Grain: 'grain',
-    Spice: 'spice',
-    Herb: 'herb',
-    Condiment: 'condiment',
-  }
-  CANONICAL_CATEGORY[c.id] = map[c.category] || 'other'
+  CANONICAL_CATEGORY[c.id] = CATEGORY_MAP[c.category] ?? 'other'
 }
 
 // Common pantry staple canonicalIds
