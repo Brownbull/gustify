@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-4: Recipe UX Hardening
 
-## Status: ready-for-dev
+## Status: review
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-4-recipe-search-filtering
 > **Priority:** P3 | **Estimated Effort:** 2 pts
@@ -28,12 +28,13 @@ As a **developer**, I want **cross-store reactivity fixed and modal accessibilit
 ## Tasks / Subtasks
 
 ### Task 1: Fix Cross-Store Stale Read (2 subtasks)
-- [ ] 1.1: Subscribe to `usePantryStore` items within `RecipesPage` so React re-renders when pantry changes
-- [ ] 1.2: Verify `cuisines` memo and match percentages update when pantry items are added/removed
+- [x] 1.1: Subscribe to `usePantryStore` items within `RecipesPage` so React re-renders when pantry changes (already in place from story 1-5)
+- [x] 1.2: Verify `cuisines` memo and match percentages update when pantry items are added/removed (regression test added to recipeStore.test.ts)
 
-### Task 2: Modal Accessibility (2 subtasks)
-- [ ] 2.1: Add `useEffect` keydown listener for Escape key to close modal
-- [ ] 2.2: Implement focus trap (trap Tab/Shift+Tab within modal, restore focus on close)
+### Task 2: Modal Accessibility — N/A
+> AC-2 and AC-3 are obsolete: the recipe detail modal was replaced by `RecipeDetailPage` with React Router in story 1-5.
+- ~~2.1: Add `useEffect` keydown listener for Escape key to close modal~~
+- ~~2.2: Implement focus trap (trap Tab/Shift+Tab within modal, restore focus on close)~~
 
 ## Dev Notes
 - Source story: [1.4-recipe-search-filtering](./1.4-recipe-search-filtering.md)

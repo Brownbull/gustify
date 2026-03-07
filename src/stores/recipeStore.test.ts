@@ -223,6 +223,38 @@ describe('recipeStore', () => {
       const ranked = useRecipeStore.getState().getRankedRecipes()
       expect(ranked).toEqual([])
     })
+
+    it('invalidates cache when pantry items change', () => {
+      useRecipeStore.setState({ recipes: MOCK_RECIPES })
+
+      // First call: empty pantry → all 0% match
+      vi.mocked(usePantryStore.getState).mockReturnValue({
+        items: [],
+      } as unknown as ReturnType<typeof usePantryStore.getState>)
+
+      const ranked1 = useRecipeStore.getState().getRankedRecipes()
+      expect(ranked1.every((r) => r.pantryMatchPct === 0)).toBe(true)
+
+      // Second call: pantry now has rice + chicken + onion → Arroz con Pollo should be 100%
+      vi.mocked(usePantryStore.getState).mockReturnValue({
+        items: [
+          makePantryItem({ canonicalId: 'rice', name: 'Arroz' }),
+          makePantryItem({ id: 'test-2', canonicalId: 'chicken_breast', name: 'Pechuga de pollo' }),
+          makePantryItem({ id: 'test-3', canonicalId: 'onion', name: 'Cebolla' }),
+        ],
+      } as ReturnType<typeof usePantryStore.getState>)
+
+      const ranked2 = useRecipeStore.getState().getRankedRecipes()
+      expect(ranked2[0].name).toBe('Arroz con Pollo')
+      expect(ranked2[0].pantryMatchPct).toBe(100)
+
+      // Verify it's a different reference (cache was invalidated)
+      expect(ranked2).not.toBe(ranked1)
+
+      // Third call with same pantry → should return cached reference (cache repopulated)
+      const ranked3 = useRecipeStore.getState().getRankedRecipes()
+      expect(ranked3).toBe(ranked2)
+    })
   })
 
   describe('filter state', () => {
