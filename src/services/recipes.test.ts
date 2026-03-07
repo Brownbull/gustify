@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock firebase/firestore
+const mockOnSnapshot = vi.fn()
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   doc: vi.fn(),
   getDoc: vi.fn(),
   getDocs: vi.fn(),
+  onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
+  query: vi.fn((...args: unknown[]) => args),
+  limit: vi.fn((n: number) => n),
 }))
 
 // Mock firebase config
@@ -14,7 +18,7 @@ vi.mock('@/config/firebase', () => ({
 }))
 
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
-import { getAllRecipes, getRecipeById } from './recipes'
+import { getAllRecipes, getRecipeById, subscribeToRecipes } from './recipes'
 
 const mockRecipeData = {
   name: 'Empanadas de Pino',
@@ -219,6 +223,72 @@ describe('Recipe Service', () => {
       vi.mocked(getDoc).mockRejectedValue(new Error('Firestore unavailable'))
 
       await expect(getRecipeById('recipe-1')).rejects.toThrow('Firestore unavailable')
+    })
+  })
+
+  // TD-1-3 Task 1.5: subscribeToRecipes service tests
+  describe('subscribeToRecipes', () => {
+    it('filters invalid docs and passes only valid recipes to callback', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const callback = vi.fn()
+
+      mockOnSnapshot.mockImplementation((
+        _query: unknown,
+        onNext: (snapshot: { docs: ReturnType<typeof makeMockDoc>[] }) => void,
+      ) => {
+        onNext({
+          docs: [
+            makeMockDoc('valid-1', mockRecipeData),
+            makeMockDoc('invalid-1', { description: 'missing name' }),
+            makeMockDoc('valid-2', { ...mockRecipeData, name: 'Cazuela' }),
+          ],
+        })
+        return vi.fn() // unsubscribe
+      })
+
+      subscribeToRecipes(callback)
+
+      expect(callback).toHaveBeenCalledTimes(1)
+      const recipes = callback.mock.calls[0][0]
+      expect(recipes).toHaveLength(2)
+      expect(recipes[0].id).toBe('valid-1')
+      expect(recipes[1].id).toBe('valid-2')
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[recipes] Invalid recipe doc',
+        'invalid-1',
+        expect.any(Array),
+      )
+
+      consoleSpy.mockRestore()
+    })
+
+    it('calls onError callback on Firestore error', () => {
+      const callback = vi.fn()
+      const onError = vi.fn()
+
+      mockOnSnapshot.mockImplementation((
+        _query: unknown,
+        _onNext: unknown,
+        onErr: (error: Error) => void,
+      ) => {
+        onErr(new Error('Permission denied'))
+        return vi.fn()
+      })
+
+      subscribeToRecipes(callback, onError)
+
+      expect(onError).toHaveBeenCalledTimes(1)
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'Permission denied' }))
+      expect(callback).not.toHaveBeenCalled()
+    })
+
+    it('returns an unsubscribe function', () => {
+      const mockUnsub = vi.fn()
+      mockOnSnapshot.mockReturnValue(mockUnsub)
+
+      const unsub = subscribeToRecipes(vi.fn())
+
+      expect(unsub).toBe(mockUnsub)
     })
   })
 })

@@ -1,6 +1,6 @@
 # Tech Debt Story TD-1-3: Recipe Browsing Component Tests
 
-## Status: ready-for-dev
+## Status: review
 
 > **Source:** ECC Code Review (2026-03-06) on story 1-3-recipe-browsing
 > **Priority:** P2 | **Estimated Effort:** 2 pts
@@ -40,19 +40,19 @@ As a **developer**, I want **component-level tests for RecipesPage UI states**, 
 ## Tasks / Subtasks
 
 ### Task 1: Create RecipesPage.test.tsx (4 subtasks)
-- [ ] 1.1: Set up test file with Zustand store mocks for recipeStore and pantryStore
-- [ ] 1.2: Test loading state renders spinner
-- [ ] 1.3: Test empty state renders message
-- [ ] 1.4: Test error state renders message and retry button triggers re-subscription
-- [ ] 1.5: Test zero-results state shows "No se encontraron recetas" when filters active but no matches
+- [x] 1.1: Set up test file with Zustand store mocks for recipeStore and pantryStore
+- [x] 1.2: Test loading state renders spinner
+- [x] 1.3: Test empty state renders message
+- [x] 1.4: Test error state renders message and retry button triggers re-subscription
+- [x] 1.5: Test zero-results state shows "No se encontraron recetas" when filters active but no matches
 
 ### Task 1.5: subscribeToRecipes Service Test (2 subtasks)
-- [ ] 1.5.1: Test subscribeToRecipes filters invalid docs via docToRecipe and logs errors
-- [ ] 1.5.2: Test subscribeToRecipes onError callback invocation on Firestore error
+- [x] 1.5.1: Test subscribeToRecipes filters invalid docs via docToRecipe and logs errors
+- [x] 1.5.2: Test subscribeToRecipes onError callback invocation on Firestore error
 
 ### Task 2: RecipeCard Component Test (2 subtasks)
-- [ ] 2.1: Test RecipeCard renders name, cuisine, match %, complexity, cook time
-- [ ] 2.2: Test RecipeCard click calls onSelect with recipe
+- [x] 2.1: Test RecipeCard renders name, cuisine, match %, complexity, cook time
+- [x] 2.2: Test RecipeCard click calls onSelect with recipe
 
 ## Dev Notes
 - Source story: [1-3-recipe-browsing](./1.3-recipe-browsing.md)
