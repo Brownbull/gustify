@@ -57,11 +57,19 @@ development_status:
   # ============================================================================
   epic-1: backlog
 
-  1-1-recipe-data-model: ready-for-dev         # 2 pts - Zod schema + recipe Firestore service
-  1-2-recipe-seed-script: ready-for-dev        # 3 pts - 50+ Chilean recipes seeded to Firestore (DEPENDS: 1-1)
-  1-3-recipe-browsing: ready-for-dev           # 4 pts - RecipesPage rewrite + pantry match ranking (DEPENDS: 1-2)
-  1-4-recipe-search-filtering: ready-for-dev   # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
-  1-5-recipe-detail-react-router: ready-for-dev  # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
+  1-1-recipe-data-model: done                    # 2 pts - Zod schema + recipe Firestore service
+  1-2-recipe-seed-script: done                  # 3 pts - 50+ Chilean recipes seeded to Firestore (DEPENDS: 1-1)
+  1-3-recipe-browsing: done                    # 4 pts - RecipesPage rewrite + pantry match ranking (DEPENDS: 1-2)
+  1-4-recipe-search-filtering: done               # 4 pts - Search + cuisine/complexity filters (DEPENDS: 1-3)
+  1-5-recipe-detail-react-router: done              # 6 pts - RecipeDetailPage + React Router migration (DEPENDS: 1-4)
+
+  TD-1-1-recipe-model-hardening: done   # 2 pts - Zod runtime validation + schema ID refactor + type derivation (DEPENDS: 1-1)
+  TD-1-2-seed-script-hardening: done   # 1 pt - Retry logic + efficient reads + category map (DEPENDS: 1-2)
+  TD-1-3-recipe-browsing-component-tests: done  # 2 pts - Component tests for RecipesPage UI states (DEPENDS: 1-3)
+  TD-1-4-recipe-ux-hardening: done                 # 2 pts - Cross-store reactivity fix + modal a11y (DEPENDS: 1-4)
+  TD-1-5-db-string-sanitization: done                     # 2 pts - Sanitize DB-sourced strings in recipe rendering (DEPENDS: 1-5)
+  TD-1-6-sanitize-hardening: done                         # 1 pt - Recursive decode loop + codepoint validation (DEPENDS: TD-1-5)
+  TD-1-7-cross-store-e2e: done                            # 1 pt - Cache key robustness; E2E test deferred to epic-4 (DEPENDS: TD-1-4)
 
   epic-1-retrospective: optional
 

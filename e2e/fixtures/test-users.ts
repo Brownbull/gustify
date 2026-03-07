@@ -1,4 +1,4 @@
-import stagingTestUsers from '../../staging-test-users.json'
+import stagingTestUsers from '../../staging-test-users.json' with { type: 'json' }
 
 export const TEST_USER_PASSWORD = stagingTestUsers.password
 

@@ -1,0 +1,57 @@
+# Tech Debt Story TD-1-5: DB-Sourced String Sanitization
+
+## Status: done
+
+> **Source:** ECC Code Review (2026-03-06) on story 1-5-recipe-detail-react-router
+> **Priority:** P2 | **Estimated Effort:** 2 pts
+
+## Story
+As a **developer**, I want **all DB-sourced strings sanitized before rendering**, so that **stored XSS via Gemini-generated or user-contributed recipe content is prevented**.
+
+## Acceptance Criteria
+
+### AC-1: Shared Sanitize Utility
+- **Given** a new `sanitizeText` utility in `src/lib/sanitize.ts`
+- **When** called with any string
+- **Then** it strips dangerous HTML/script content while preserving safe text
+
+### AC-2: Recipe Detail Sanitization
+- **Given** RecipeDetailPage renders a recipe
+- **When** `recipe.name`, `recipe.description`, `step.instruction`, or `ing.name` contain HTML or script tags
+- **Then** they are sanitized before rendering (defense-in-depth beyond React's JSX escaping)
+
+### AC-3: Recipe Card Sanitization
+- **Given** RecipeCard renders recipe data
+- **When** recipe fields contain potentially dangerous content
+- **Then** they are passed through `sanitizeText` at the rendering boundary
+
+## Tasks / Subtasks
+
+### Task 1: Create Sanitize Utility (2 subtasks)
+- [x] 1.1: Create `src/lib/sanitize.ts` with `sanitizeText(input: string, opts?: { maxLength?: number }): string`
+- [x] 1.2: Add unit tests for sanitize utility (HTML tags, script injection, normal text passthrough)
+
+### Task 2: Apply to Recipe Rendering (2 subtasks)
+- [x] 2.1: Apply `sanitizeText` to DB-sourced fields in `RecipeDetailPage.tsx` (name, description, instructions, ingredient names)
+- [x] 2.2: Apply `sanitizeText` to DB-sourced fields in `RecipeCard.tsx`
+
+## Dev Notes
+- Source story: [1.5-recipe-detail-react-router](./1.5-recipe-detail-react-router.md)
+- Review findings: #2 (DB-sourced value injection prevention — project pattern #7)
+- Files affected: `src/lib/sanitize.ts` (CREATE), `src/pages/RecipeDetailPage.tsx`, `src/components/RecipeCard.tsx`
+- React's JSX escaping already prevents most XSS, but project pattern #7 requires explicit sanitization as defense-in-depth
+- Recipes are Gemini-generated (Phase 1) and may become user-contributed (Phase 2+)
+
+## Senior Developer Review (ECC)
+- **Date:** 2026-03-07
+- **Agents:** code-reviewer (8/10), security-reviewer (9/10)
+- **Classification:** STANDARD | **Overall:** 8.5/10 APPROVE
+- **Quick fixes applied:** 5 (add &apos; entity, add &apos; test, extract COMPLEXITY_LABELS, sanitize ing.unit, add JSDoc)
+- **Deferred:** TD-1-6 (sanitize hardening — recursive decode + codepoint validation)
+
+| TD Story | Description | Priority | Action |
+|----------|-------------|----------|--------|
+| TD-1-6 | Sanitize utility hardening (recursive decode + codepoints) | P3 | CREATED |
+| TD-1-7 | Cross-store E2E + cache robustness | P4 | CREATED |
+
+<!-- CITED: L2-002 (input sanitization), L2-007 (DB-sourced injection) -->

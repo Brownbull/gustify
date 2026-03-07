@@ -1,0 +1,481 @@
+# ============================================================
+# HOUSEHOLD PROFILE SCHEMA
+# Defines constraints, preferences, and context for recipe
+# generation and meal planning.
+# ============================================================
+# This profile is sent as context when calling an LLM API
+# to generate or evaluate recipes.
+# ============================================================
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: HouseholdProfile
+description: >
+  Household-level constraints and per-member preferences that govern
+  recipe generation, meal planning, and pantry management.
+type: object
+required:
+  - version
+  - household
+  - dietary_framework
+  - cooking_system
+  - constraints
+
+properties:
+
+  version:
+    type: string
+    description: Schema version for migration support
+    example: "1.0.0"
+
+  household:
+    type: object
+    description: Household members and their individual profiles
+    required: [location, members]
+    properties:
+      location:
+        type: object
+        required: [city, region, country]
+        properties:
+          city:
+            type: string
+            example: "Villarrica"
+          region:
+            type: string
+            example: "Araucanía"
+          country:
+            type: string
+            example: "Chile"
+          notes:
+            type: string
+            description: >
+              Context about ingredient availability tied to location
+            example: "Southern Chile. Access to local markets, seasonal produce, Chilean cuts of meat."
+
+      members:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/Member"
+
+  dietary_framework:
+    type: object
+    description: >
+      Shared dietary approach for the household. Individual overrides
+      go in each member's preferences.
+    required: [primary_diets, goals, restrictions]
+    properties:
+      primary_diets:
+        type: array
+        items:
+          type: string
+          enum:
+            - dirty_keto
+            - strict_keto
+            - mediterranean
+            - paleo
+            - low_carb
+            - balanced
+            - other
+        example: ["dirty_keto", "mediterranean"]
+
+      goals:
+        type: array
+        items:
+          type: string
+          enum:
+            - weight_loss
+            - weight_maintenance
+            - muscle_gain
+            - blood_sugar_control
+            - reduce_processed_foods
+            - reduce_sugar
+            - anti_inflammatory
+            - general_health
+        example: ["weight_loss", "blood_sugar_control", "reduce_processed_foods", "reduce_sugar"]
+
+      restrictions:
+        type: object
+        properties:
+          avoid_ingredients:
+            type: array
+            description: Ingredients to never include in recipes
+            items:
+              type: string
+            example: []
+          limit_ingredients:
+            type: array
+            description: Ingredients to use sparingly or with awareness
+            items:
+              type: object
+              properties:
+                ingredient:
+                  type: string
+                reason:
+                  type: string
+            example:
+              - ingredient: "sugar"
+                reason: "Transitioning away from added sugars. Prefer natural sweeteners or keto alternatives."
+              - ingredient: "refined_flour"
+                reason: "Reducing processed carbohydrates"
+          preferred_sweeteners:
+            type: array
+            items:
+              type: string
+            example: ["erythritol", "stevia", "monk_fruit", "allulose"]
+
+  cooking_system:
+    type: object
+    description: >
+      Defines the batch cooking workflow, equipment, and methods.
+      Recipes must be compatible with this system.
+    required: [workflow, allowed_methods, forbidden_methods, equipment]
+    properties:
+      workflow:
+        type: object
+        description: The batch cooking pipeline
+        properties:
+          strategy:
+            type: string
+            enum: [batch_cook_freeze, meal_prep_fresh, cook_daily, hybrid]
+            example: "batch_cook_freeze"
+          description:
+            type: string
+            example: >
+              Cook in large batches, portion, vacuum seal, freeze.
+              Reheat individual portions via water bath, oven, or stovetop.
+              Cook components to ~70% doneness for freezing portions.
+          typical_batch_size:
+            type: string
+            example: "4-10 portions per recipe"
+          portion_weight_grams:
+            type: object
+            properties:
+              min:
+                type: integer
+                example: 300
+              max:
+                type: integer
+                example: 500
+              typical:
+                type: integer
+                example: 400
+
+      allowed_methods:
+        type: array
+        description: Cooking methods that are acceptable
+        items:
+          type: string
+          enum:
+            - baking
+            - roasting
+            - braising
+            - stewing
+            - sauteing
+            - stir_frying  # with minimal oil
+            - boiling
+            - steaming
+            - grilling
+            - water_bath_reheating
+            - oven_reheating
+            - stovetop_reheating
+            - slow_cooking
+            - pressure_cooking
+        example:
+          - baking
+          - roasting
+          - braising
+          - stewing
+          - sauteing
+          - stir_frying
+          - boiling
+          - steaming
+          - water_bath_reheating
+          - oven_reheating
+          - stovetop_reheating
+          - slow_cooking
+
+      forbidden_methods:
+        type: array
+        description: Cooking methods that must never be used
+        items:
+          type: string
+        example:
+          - deep_frying
+          - shallow_frying
+
+      equipment:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            notes:
+              type: string
+        example:
+          - name: "vacuum_sealer"
+            notes: "Primary preservation method"
+          - name: "silicone_molds"
+            notes: "For IQF portioning before vacuum sealing"
+          - name: "oven"
+            notes: "Standard home oven"
+          - name: "stovetop"
+            notes: "Standard gas/electric"
+          - name: "large_pot"
+            notes: "For water bath reheating and batch cooking"
+
+      freezing_rules:
+        type: object
+        description: >
+          Rules for what can and cannot be frozen, and how to handle
+          specific ingredients during the freeze/reheat cycle.
+        properties:
+          method:
+            type: string
+            example: "IQF in silicone molds → freeze solid → vacuum seal → label"
+          max_storage_months:
+            type: integer
+            example: 3
+          ingredients_to_add_at_reheat:
+            type: array
+            description: >
+              Ingredients that must NOT be included in the frozen portion.
+              They should be added only at reheating/serving time.
+            items:
+              type: object
+              properties:
+                ingredient:
+                  type: string
+                reason:
+                  type: string
+            example:
+              - ingredient: "cream"
+                reason: "Separates and becomes grainy when frozen. Add during reheating."
+              - ingredient: "cheese"
+                reason: "Add at gratinating/serving step, not before freezing."
+              - ingredient: "fresh_herbs"
+                reason: "Lose color and texture. Add at serving."
+              - ingredient: "fried_egg"
+                reason: "Cook fresh at serving time."
+              - ingredient: "avocado"
+                reason: "Texture degrades completely when frozen."
+          vegetable_rule:
+            type: string
+            example: >
+              Cook vegetables to slightly under desired doneness (~70%) before freezing.
+              They will finish cooking during reheating.
+          cooling_rule:
+            type: string
+            example: >
+              Cool to room temperature within 2 hours. Spread on trays for
+              rapid cooling before portioning and vacuum sealing.
+
+      reheating_methods:
+        type: array
+        items:
+          type: object
+          properties:
+            method:
+              type: string
+            temperature:
+              type: string
+            duration:
+              type: string
+            notes:
+              type: string
+        example:
+          - method: "water_bath"
+            temperature: "70-80°C"
+            duration: "25-35 min depending on portion size"
+            notes: "Primary method. Submerge vacuum-sealed bag. Do not boil."
+          - method: "oven"
+            temperature: "180-200°C"
+            duration: "15-25 min"
+            notes: "Good for items that benefit from browning or crisping."
+          - method: "stovetop"
+            temperature: "medium-low"
+            duration: "5-10 min"
+            notes: "Open bag, transfer to pan. Good for refreshing texture."
+
+  constraints:
+    type: object
+    description: >
+      Hard constraints that must be validated against every recipe.
+      A recipe that violates any hard constraint is rejected.
+    properties:
+      hard:
+        type: array
+        description: Non-negotiable rules
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            rule:
+              type: string
+            category:
+              type: string
+              enum: [method, ingredient, dietary, safety, workflow]
+        example:
+          - id: "no_frying"
+            rule: "Never use deep frying or shallow frying as a cooking method"
+            category: method
+          - id: "no_processed"
+            rule: "Avoid ultra-processed ingredients. Prefer whole foods and homemade components."
+            category: ingredient
+          - id: "freeze_compatible"
+            rule: "Recipe must be compatible with vacuum seal freezing and reheating"
+            category: workflow
+          - id: "cream_at_reheat"
+            rule: "Dairy cream must be added at reheating, never frozen in the dish"
+            category: workflow
+          - id: "vegs_undercook"
+            rule: "Vegetables in freezer portions must be cooked to 70% doneness"
+            category: workflow
+          - id: "batch_friendly"
+            rule: "Recipe must scale to at least 4 portions"
+            category: workflow
+
+      soft:
+        type: array
+        description: Preferences that should be followed when possible but can be relaxed
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            rule:
+              type: string
+            priority:
+              type: string
+              enum: [high, medium, low]
+        example:
+          - id: "prefer_bold_flavors"
+            rule: "Prefer recipes with bold, spice-forward flavor profiles"
+            priority: high
+          - id: "international_variety"
+            rule: "Favor international cuisines (Korean, Chinese, Moroccan, Hungarian, etc.) over familiar Chilean defaults"
+            priority: medium
+          - id: "dual_serving"
+            rule: "When possible, design recipes where the base can serve both members with their different preferences (meat-heavy vs legume/salad-heavy)"
+            priority: medium
+          - id: "neutral_base_split"
+            rule: "Consider recipes where a neutral base can be split into multiple flavor profiles for variety"
+            priority: low
+
+  ingredient_availability:
+    type: object
+    description: What's typically available and accessible
+    properties:
+      always_available:
+        type: array
+        items:
+          type: string
+        example:
+          - "eggs"
+          - "onions"
+          - "garlic"
+          - "butter"
+          - "cream"
+          - "milk"
+          - "olive_oil"
+          - "chicken"
+          - "pork"
+          - "beef"
+          - "salt"
+          - "black_pepper"
+      commonly_available:
+        type: array
+        items:
+          type: string
+        example:
+          - "bell_peppers"
+          - "tomatoes"
+          - "potatoes"
+          - "zucchini"
+          - "mushrooms"
+          - "cheese"
+          - "longaniza"
+          - "prieta"
+          - "merken"
+          - "paprika"
+          - "cumin"
+          - "oregano"
+      chilean_cuts:
+        type: array
+        description: Local beef/pork cuts with their approximate equivalents
+        items:
+          type: object
+          properties:
+            local_name:
+              type: string
+            description:
+              type: string
+            best_for:
+              type: array
+              items:
+                type: string
+        example:
+          - local_name: "posta_negra"
+            description: "Eye of round. Lean, tender for quick cooking."
+            best_for: ["escalopa", "filete", "stir_fry"]
+          - local_name: "posta_paleta"
+            description: "Shoulder clod. Lean, good for slow cooking."
+            best_for: ["stew", "braised", "pulled"]
+          - local_name: "punta_paleta"
+            description: "Shoulder clod heart. More marbled, excellent for slow cooking."
+            best_for: ["pulled_beef", "stew", "curry"]
+          - local_name: "osobuco"
+            description: "Osso buco / shank cross-cut."
+            best_for: ["stew", "braised"]
+          - local_name: "tapapecho"
+            description: "Brisket."
+            best_for: ["braised", "stew", "slow_roast"]
+
+# ============================================================
+# MEMBER DEFINITION
+# ============================================================
+$defs:
+  Member:
+    type: object
+    required: [id, name, preferences]
+    properties:
+      id:
+        type: string
+        description: Unique identifier for the member
+      name:
+        type: string
+      birth_year:
+        type: integer
+      health_conditions:
+        type: array
+        items:
+          type: string
+        description: Relevant health conditions that affect dietary choices
+      activity_level:
+        type: string
+        enum: [sedentary, lightly_active, moderately_active, very_active]
+      occupation_type:
+        type: string
+        enum: [office, manual, mixed, other]
+      preferences:
+        type: object
+        properties:
+          protein_preference:
+            type: string
+            enum: [meat_heavy, balanced, plant_forward, vegetarian, vegan]
+          flavor_preferences:
+            type: array
+            items:
+              type: string
+            description: Flavor profiles this person enjoys
+          aversions:
+            type: array
+            items:
+              type: string
+            description: Specific ingredients this person refuses to eat
+          spice_tolerance:
+            type: string
+            enum: [none, mild, medium, high, extreme]
+          portion_notes:
+            type: string

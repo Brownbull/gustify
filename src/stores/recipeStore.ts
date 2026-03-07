@@ -1,144 +1,138 @@
 import { create } from 'zustand'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/config/firebase'
-import { suggestRecipes } from '@/services/gemini'
-import type { Recipe, GeminiRecipe, NoveltyBadge } from '@/types/recipe'
-import type { EnrichedPantryItem } from '@/types/pantry'
-import type { CookingProfile } from '@/types/user'
+import { subscribeToRecipes } from '@/services/recipes'
+import { usePantryStore } from '@/stores/pantryStore'
+import { computePantryMatchPct } from '@/lib/pantryMatch'
+import type { StoredRecipe } from '@/types/recipe'
 
-function generateId(): string {
-  return Math.random().toString(36).slice(2, 10)
-}
-
-/**
- * Compute pantry match: how many recipe ingredients are available in the pantry.
- */
-function computePantryMatch(
-  recipeIngredients: GeminiRecipe['ingredients'],
-  pantryNames: Set<string>,
-): { ingredients: Recipe['ingredients']; matchPct: number } {
-  const enriched = recipeIngredients.map((ing) => ({
-    name: ing.name,
-    quantity: ing.quantity,
-    unit: ing.unit,
-    inPantry: pantryNames.has(ing.name.toLowerCase()),
-  }))
-  const available = enriched.filter((i) => i.inPantry).length
-  const matchPct = enriched.length > 0 ? Math.round((available / enriched.length) * 100) : 0
-  return { ingredients: enriched, matchPct }
-}
-
-/**
- * Determine novelty badges by comparing recipe attributes against the user's cooking profile.
- */
-function computeNoveltyBadges(
-  recipe: GeminiRecipe,
-  profile: CookingProfile,
-): NoveltyBadge[] {
-  const badges: NoveltyBadge[] = []
-
-  if (!profile.cookedCuisines.some((c) => c.toLowerCase() === recipe.cuisine.toLowerCase())) {
-    badges.push({ type: 'cuisine', label: recipe.cuisine })
-  }
-
-  for (const tech of recipe.techniques) {
-    if (!profile.cookedTechniques.some((t) => t.toLowerCase() === tech.toLowerCase())) {
-      badges.push({ type: 'technique', label: tech })
-      break
-    }
-  }
-
-  return badges
-}
-
-function enrichRecipe(
-  raw: GeminiRecipe,
-  pantryNames: Set<string>,
-  profile: CookingProfile,
-): Recipe {
-  const { ingredients, matchPct } = computePantryMatch(raw.ingredients, pantryNames)
-  const noveltyBadges = computeNoveltyBadges(raw, profile)
-
-  return {
-    id: generateId(),
-    name: raw.name,
-    description: raw.description,
-    cuisine: raw.cuisine,
-    techniques: raw.techniques,
-    complexity: raw.complexity,
-    prepTime: raw.prepTime,
-    cookTime: raw.cookTime,
-    servings: raw.servings,
-    ingredients,
-    steps: raw.steps,
-    pantryMatchPct: matchPct,
-    noveltyBadges,
-  }
+export interface RankedRecipe extends StoredRecipe {
+  pantryMatchPct: number
 }
 
 interface RecipeState {
-  recipes: Recipe[]
+  recipes: StoredRecipe[]
   loading: boolean
   error: string | null
 
-  fetchSuggestions: (userId: string, pantryItems: EnrichedPantryItem[]) => Promise<void>
-  clearRecipes: () => void
+  // Filter state
+  searchQuery: string
+  cuisineFilter: string | null
+  complexityFilter: [number, number] | null
+
+  subscribe: () => void
+  unsubscribe: () => void
+  getRankedRecipes: () => RankedRecipe[]
+  getFilteredRecipes: () => RankedRecipe[]
+
+  // Filter actions
+  setSearchQuery: (query: string) => void
+  setCuisineFilter: (cuisine: string | null) => void
+  setComplexityFilter: (range: [number, number] | null) => void
+  clearFilters: () => void
 }
 
-export const useRecipeStore = create<RecipeState>((set) => ({
+// Singleton listener — only one subscription active at a time.
+// The guard in subscribe() silently skips if already subscribed.
+let _unsubscribe: (() => void) | null = null
+let _rankedCache: { key: string; result: RankedRecipe[] } | null = null
+
+/** Sanitize search input: truncate to 100 chars, strip regex special chars, lowercase + trim */
+export function sanitizeSearch(raw: string): string {
+  return raw.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '').toLowerCase().trim()
+}
+
+export const useRecipeStore = create<RecipeState>((set, get) => ({
   recipes: [],
-  loading: false,
+  loading: true,
   error: null,
 
-  fetchSuggestions: async (userId, pantryItems) => {
+  // Filter state
+  searchQuery: '',
+  cuisineFilter: null,
+  complexityFilter: null,
+
+  // Filter actions
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setCuisineFilter: (cuisine) => set({ cuisineFilter: cuisine }),
+  setComplexityFilter: (range) => set({ complexityFilter: range }),
+  clearFilters: () => set({ searchQuery: '', cuisineFilter: null, complexityFilter: null }),
+
+  subscribe: () => {
+    if (_unsubscribe) return
+
     set({ loading: true, error: null })
-    try {
-      // Fetch user's cooking profile from Firestore
-      const userSnap = await getDoc(doc(db, 'users', userId))
-      const userData = userSnap.data()
-      const cookingProfile: CookingProfile = userData?.cookingProfile ?? {
-        dietPrefs: [],
-        allergies: [],
-        proficiencyTier: 'Principiante' as const,
-        avgComplexity: 0,
-        dishesCooked: 0,
-        cookedCuisines: [],
-        cookedTechniques: [],
-        cookedIngredients: [],
-      }
 
-      // Build request from pantry items + profile
-      const response = await suggestRecipes({
-        pantryItems: pantryItems
-          .filter((item) => item.expiryStatus !== 'expired')
-          .map((item) => ({
-            canonicalId: item.canonicalId,
-            name: item.name,
-            quantity: item.quantity,
-            unit: item.unit,
-          })),
-        dietPrefs: cookingProfile.dietPrefs,
-        allergies: cookingProfile.allergies,
-        proficiencyTier: cookingProfile.proficiencyTier,
-        avgComplexity: cookingProfile.avgComplexity,
-      })
+    _unsubscribe = subscribeToRecipes(
+      (recipes) => {
+        set({ recipes, loading: false, error: null })
+      },
+      (error) => {
+        set({ error: error.message, loading: false })
+      },
+    )
+  },
 
-      // Build a set of pantry ingredient names (lowercase) for matching
-      const pantryNames = new Set(pantryItems.map((p) => p.name.toLowerCase()))
-
-      // Enrich Gemini recipes with pantry match % and novelty badges
-      const recipes = response.recipes
-        .map((raw) => enrichRecipe(raw, pantryNames, cookingProfile))
-        .sort((a, b) => b.pantryMatchPct - a.pantryMatchPct)
-
-      set({ recipes, loading: false })
-    } catch (err) {
-      set({
-        error: err instanceof Error ? err.message : 'Error al generar sugerencias',
-        loading: false,
-      })
+  unsubscribe: () => {
+    if (_unsubscribe) {
+      _unsubscribe()
+      _unsubscribe = null
     }
   },
 
-  clearRecipes: () => set({ recipes: [], error: null }),
+  getRankedRecipes: () => {
+    const { recipes } = get()
+    const pantryItems = usePantryStore.getState().items
+
+    // Cache key: JSON-serialized recipe ids + pantry ids. Recompute only when either changes.
+    const cacheKey = JSON.stringify([recipes.map((r) => r.id), pantryItems.map((p) => p.canonicalId)])
+    if (_rankedCache?.key === cacheKey) return _rankedCache.result
+
+    const pantryCanonicalIds = new Set(pantryItems.map((p) => p.canonicalId))
+    const pantryNamesLower = new Set(pantryItems.map((p) => p.name.toLowerCase()))
+
+    const result = recipes
+      .map((recipe) => ({
+        ...recipe,
+        pantryMatchPct: computePantryMatchPct(recipe, pantryCanonicalIds, pantryNamesLower),
+      }))
+      .sort((a, b) => b.pantryMatchPct - a.pantryMatchPct)
+
+    _rankedCache = { key: cacheKey, result }
+    return result
+  },
+
+  getFilteredRecipes: () => {
+    const { searchQuery, cuisineFilter, complexityFilter } = get()
+    const ranked = get().getRankedRecipes()
+
+    const query = sanitizeSearch(searchQuery)
+
+    return ranked.filter((recipe) => {
+      // Text search: match name, description, or ingredient names
+      if (query) {
+        const nameLower = recipe.name.toLowerCase()
+        const descLower = recipe.description.toLowerCase()
+        const ingredientMatch = recipe.ingredients.some(
+          (ing) => ing.name.toLowerCase().includes(query),
+        )
+        if (!nameLower.includes(query) && !descLower.includes(query) && !ingredientMatch) {
+          return false
+        }
+      }
+
+      // Cuisine filter
+      if (cuisineFilter && recipe.cuisine !== cuisineFilter) {
+        return false
+      }
+
+      // Complexity filter
+      if (complexityFilter) {
+        const [min, max] = complexityFilter
+        if (recipe.complexity < min || recipe.complexity > max) {
+          return false
+        }
+      }
+
+      return true
+    })
+  },
 }))

@@ -1,0 +1,143 @@
+# ============================================================
+# API PROMPT TEMPLATE
+# Template for calling Gemini/Claude API to generate recipes
+# that conform to the schema and household constraints.
+# ============================================================
+#
+# USAGE:
+# 1. Load the household profile YAML
+# 2. Serialize it into the system prompt below
+# 3. Send the user's recipe request as the user message
+# 4. Parse the structured YAML/JSON response
+# 5. Validate against the recipe schema
+# 6. Save to the recipe store
+#
+# The template below uses {placeholders} for dynamic content.
+# ============================================================
+
+# ----------------------------------------------------------
+# SYSTEM PROMPT
+# ----------------------------------------------------------
+system_prompt: |
+  You are a recipe generation assistant for a meal planning application.
+  You generate recipes in a strict structured format (YAML or JSON) that
+  conform to the household's cooking system and dietary constraints.
+
+  ## HOUSEHOLD PROFILE
+  {household_profile_yaml}
+
+  ## OUTPUT FORMAT
+  You must respond with a single YAML document conforming to the Recipe schema.
+  Do not include any text outside the YAML block. The response must be
+  parseable as valid YAML.
+
+  ## CRITICAL RULES
+  Based on the household profile above, every recipe you generate MUST:
+
+  1. NEVER use deep frying or shallow frying.
+  2. NEVER include ultra-processed ingredients.
+  3. Be fully compatible with vacuum seal freezing and water bath reheating.
+  4. NEVER include cream, cheese, fresh herbs, avocado, or yogurt in the
+     frozen portion — these must be listed in storage.freezing.freeze_without
+     with instructions for when to add them.
+  5. Cook vegetables to ~70% doneness in the method, noting this explicitly.
+  6. Yield at least 4 portions (ideally 6-10).
+  7. NEVER include cucumber, watermelon, or melon.
+  8. Include complete freezing and reheating instructions.
+  9. Include at least one pause point for batch cooking workflow.
+  10. Use Chilean meat cut names when applicable (posta negra, posta paleta, etc.)
+  11. Minimize added sugars. If sweetness is required, prefer keto-friendly
+      alternatives (erythritol, stevia, allulose).
+
+  ## RECIPE STRUCTURE
+  The recipe YAML must include these top-level keys:
+  - id: (generate a UUID)
+  - version: "1.0.0"
+  - created_at: (current ISO datetime)
+  - source: (type: ai_generated, ai_model: "{model_name}")
+  - meta: (title, cuisine, tags, dietary_profile, difficulty, times, member_suitability)
+  - servings: (base_yield, portion_weight_grams)
+  - ingredients: (grouped by component, each with name, quantity, unit, category, freeze_exclude flag)
+  - method: (organized into phases with steps, pause_points, tips, troubleshooting)
+  - storage: (freezing method, freeze_without list, reheating methods with post_reheat_steps)
+
+  Generate complete, detailed recipes with precise quantities in metric units.
+  Include timing coordination notes and troubleshooting for common issues.
+
+# ----------------------------------------------------------
+# USER PROMPT EXAMPLES
+# ----------------------------------------------------------
+user_prompt_examples:
+  - description: "Simple recipe request"
+    prompt: |
+      Generate a recipe for Korean bulgogi that works with my batch cooking system.
+      Use posta negra as the beef cut.
+
+  - description: "Request with specific constraints"
+    prompt: |
+      I have 1.5kg of punta paleta and want to make a Moroccan tagine.
+      Include options for both household members.
+
+  - description: "Request based on available ingredients"
+    prompt: |
+      I have these ingredients available right now:
+      - 2kg chicken thighs
+      - bell peppers (red, green)
+      - onions
+      - garlic
+      - paprika, cumin, oregano
+      - tomatoes
+      - cream (for reheating)
+
+      Suggest and generate a recipe that uses most of these ingredients.
+
+  - description: "Multi-recipe batch session"
+    prompt: |
+      I'm planning a batch cooking session this weekend.
+      I have 2kg ground beef and 1.5kg chicken thighs.
+      Generate 2 recipes:
+      1. Something Korean or Chinese with the ground beef
+      2. Something Mediterranean with the chicken
+      Both should yield 6+ portions each.
+
+# ----------------------------------------------------------
+# RESPONSE VALIDATION CHECKLIST
+# ----------------------------------------------------------
+# After receiving the API response, validate:
+validation_checklist:
+  - "Response is valid YAML"
+  - "All required fields present (id, meta, servings, ingredients, method, storage)"
+  - "No forbidden cooking methods used (deep_frying, shallow_frying)"
+  - "No forbidden ingredients (cucumber, watermelon, melon)"
+  - "Cream/cheese/fresh herbs marked as freeze_exclude: true"
+  - "storage.freezing.freeze_without includes all freeze-sensitive ingredients"
+  - "storage.reheating includes water_bath as first option"
+  - "At least one phase has is_pause_point: true"
+  - "servings.base_yield >= 4"
+  - "All quantities use metric units"
+  - "dietary_profile.diets_compatible includes at least one of: dirty_keto, mediterranean"
+
+# ----------------------------------------------------------
+# INTEGRATION NOTES
+# ----------------------------------------------------------
+integration_notes:
+  gustify_import: |
+    When importing ingredients from Gustify:
+    1. Map Gustify ingredient names to the ingredient.name field
+    2. Set pantry_item: true for staples
+    3. Cross-reference with ingredient_availability from the profile
+    4. Flag any ingredients not in the availability lists for the user to confirm
+
+  pantry_tracking: |
+    After cooking a recipe:
+    1. Decrement pantry quantities for all used ingredients
+    2. Set pantry.last_cooked to current datetime
+    3. Increment pantry.times_cooked
+    4. Set pantry.current_frozen_portions to the number of portions frozen
+    5. Prompt user for rating and notes
+
+  meal_log: |
+    When a frozen portion is consumed:
+    1. Decrement pantry.current_frozen_portions
+    2. Log the meal with date, member(s), and any notes
+    3. Track nutritional intake if nutrition_per_serving is populated

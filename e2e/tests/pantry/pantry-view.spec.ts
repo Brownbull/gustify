@@ -92,7 +92,7 @@ test.describe('Pantry view', () => {
   test('displays pantry with segmented control and expiry badges', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     await page.screenshot({ path: `${RESULTS_DIR}/01-pantry-loaded.png`, fullPage: true })
@@ -120,7 +120,7 @@ test.describe('Pantry view', () => {
   test('shows prepared food via segmented control', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     // Switch to Preparadas tab
@@ -141,7 +141,7 @@ test.describe('Pantry view', () => {
   test('category chips filter the ingredient list', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     // Count items before filtering (only ingredients visible on default tab)
@@ -170,7 +170,7 @@ test.describe('Pantry view', () => {
   test('expiry dropdown filters active tab', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     const dropdownTrigger = page.locator('[data-testid="expiry-dropdown-trigger"]')
@@ -203,7 +203,7 @@ test.describe('Pantry view', () => {
   test('cuisine chips filter prepared food list', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     // Switch to Preparadas tab
@@ -233,7 +233,7 @@ test.describe('Pantry view', () => {
   test('assign cuisine to prepared food item', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     // Switch to Preparadas tab
@@ -261,7 +261,7 @@ test.describe('Pantry view', () => {
   test('empty state shows for user with no pantry data', async ({ page, loginAs }) => {
     await loginAs('avanzado')
 
-    await page.getByRole('button', { name: 'Despensa' }).click()
+    await page.getByRole('link', { name: 'Despensa' }).click()
     await waitForPantry(page)
 
     await page.screenshot({ path: `${RESULTS_DIR}/07-empty-state.png`, fullPage: true })

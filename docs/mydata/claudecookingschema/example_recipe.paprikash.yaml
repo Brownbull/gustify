@@ -1,0 +1,293 @@
+# ============================================================
+# EXAMPLE RECIPE INSTANCE
+# Hungarian Chicken Paprikash — the first recipe from the project
+# ============================================================
+
+id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+version: "1.0.0"
+created_at: "2026-01-20T15:00:00Z"
+updated_at: "2026-01-20T15:00:00Z"
+
+source:
+  type: "ai_generated"
+  origin: "Claude project chat — adapted from Hungarian csirkepaprikás"
+  ai_model: "claude-sonnet-4-5-20250929"
+
+meta:
+  title: "Pollo al Pimentón Estilo Húngaro"
+  title_original: "Csirkepaprikás"
+  description: >
+    Chicken thighs braised in a rich paprika and onion sauce.
+    Cream is added only at reheating for a silky, unbroken finish.
+  cuisine: "Hungarian"
+  cuisine_tags: ["european", "eastern_european", "hungarian"]
+  tags:
+    - "chicken"
+    - "stew"
+    - "paprika"
+    - "batch_friendly"
+    - "freeze_friendly"
+    - "bold_flavor"
+    - "comfort_food"
+    - "one_pot"
+  dietary_profile:
+    diets_compatible: ["dirty_keto", "mediterranean"]
+    is_low_sugar: true
+    is_processed_free: true
+    estimated_carbs_per_serving: "low (~6g net without rice)"
+  difficulty: "easy"
+  active_time_minutes: 25
+  total_time_minutes: 65
+  member_suitability:
+    gabe:
+      score: "excellent"
+      notes: "Meat-forward, bold paprika flavor, satisfying"
+    partner:
+      score: "good"
+      notes: "Serve with extra salad or steamed vegetables on the side"
+
+servings:
+  base_yield: 8
+  portion_weight_grams: 400
+  scale_notes: "Scales linearly. For 4 portions, halve everything."
+
+ingredients:
+  - group_name: "Chicken"
+    items:
+      - name: "chicken thighs (bone-in, skin-on)"
+        quantity: 2
+        unit: "kg"
+        notes: "Can use boneless if preferred, reduce braising time by 10 min"
+        category: "protein"
+      - name: "salt"
+        quantity: 1
+        unit: "tsp"
+        category: "spice"
+        pantry_item: true
+      - name: "black pepper"
+        quantity: 0.5
+        unit: "tsp"
+        category: "spice"
+        pantry_item: true
+
+  - group_name: "Sauce Base"
+    items:
+      - name: "onions (large, diced)"
+        quantity: 4
+        unit: "unit"
+        category: "vegetable"
+      - name: "garlic (minced)"
+        quantity: 6
+        unit: "unit"
+        notes: "6 cloves"
+        category: "vegetable"
+      - name: "sweet paprika"
+        quantity: 4
+        unit: "tbsp"
+        notes: "Hungarian sweet paprika preferred. This is the star."
+        category: "spice"
+      - name: "smoked paprika"
+        quantity: 1
+        unit: "tbsp"
+        notes: "Optional, adds depth"
+        category: "spice"
+        optional: true
+      - name: "tomato paste"
+        quantity: 2
+        unit: "tbsp"
+        category: "condiment"
+      - name: "chicken broth"
+        quantity: 500
+        unit: "ml"
+        category: "liquid"
+      - name: "olive oil"
+        quantity: 3
+        unit: "tbsp"
+        category: "fat"
+        pantry_item: true
+      - name: "bay leaf"
+        quantity: 2
+        unit: "unit"
+        category: "spice"
+        optional: true
+
+  - group_name: "At Reheating (DO NOT FREEZE)"
+    items:
+      - name: "cream"
+        quantity: 80
+        unit: "ml"
+        notes: "Per portion. Add only at reheating."
+        category: "dairy"
+        freeze_exclude: true
+      - name: "fresh parsley"
+        quantity: 1
+        unit: "to_taste"
+        notes: "Garnish at serving"
+        category: "other"
+        freeze_exclude: true
+        optional: true
+
+method:
+  phases:
+    - name: "Sear the Chicken"
+      duration_minutes: 10
+      steps:
+        - step_number: 1
+          instruction: >
+            Season chicken thighs with salt and pepper on both sides.
+          technique: "mixing"
+        - step_number: 2
+          instruction: >
+            Heat olive oil in a large heavy pot or Dutch oven over medium-high heat.
+            Sear chicken pieces skin-side down for 3-4 minutes until golden.
+            Flip and sear 2 more minutes. Remove and set aside.
+          duration_minutes: 6
+          technique: "sauteing"
+          tip: "Don't move the chicken while searing — let it develop color."
+
+    - name: "Build the Sauce"
+      duration_minutes: 15
+      steps:
+        - step_number: 3
+          instruction: >
+            In the same pot, lower heat to medium. Add diced onions.
+            Sauté for 8-10 minutes until soft and translucent.
+          duration_minutes: 10
+          technique: "sauteing"
+        - step_number: 4
+          instruction: >
+            Add garlic, cook 1 minute until fragrant.
+            REMOVE FROM HEAT. Add all the paprika and stir well.
+          duration_minutes: 2
+          technique: "sauteing"
+          tip: >
+            Paprika burns easily. Removing from heat before adding it
+            prevents bitterness. The residual heat is enough.
+        - step_number: 5
+          instruction: >
+            Add tomato paste, stir to combine. Return to medium heat.
+            Add chicken broth and bay leaves. Stir well, scraping
+            up any browned bits from the bottom.
+          duration_minutes: 3
+          technique: "simmering"
+
+    - name: "Braise the Chicken"
+      duration_minutes: 35
+      is_pause_point: true
+      pause_point_notes: >
+        BATCH COOKING STOP POINT: After braising, the dish is ready
+        for portioning. Cool, portion into 400g servings using silicone
+        molds, freeze solid, then vacuum seal. Do NOT add cream before
+        freezing.
+      steps:
+        - step_number: 6
+          instruction: >
+            Return chicken pieces to the pot, nestling them into the sauce.
+            Bring to a gentle simmer, cover, and cook on low heat for
+            30-35 minutes until chicken is tender and cooked through
+            (internal temp 74°C).
+          duration_minutes: 35
+          temperature: "low simmer"
+          technique: "braising"
+          tip: >
+            If sauce looks thin after braising, remove chicken,
+            increase heat and reduce sauce for 5-10 minutes.
+
+    - name: "Portion and Store"
+      duration_minutes: 15
+      steps:
+        - step_number: 7
+          instruction: >
+            Remove bay leaves. Optionally shred chicken off the bone
+            for easier portioning (or leave pieces whole).
+          technique: "other"
+        - step_number: 8
+          instruction: >
+            FOR IMMEDIATE SERVING: Portion 1-2 servings into a saucepan.
+            Add 80-100ml cream per portion. Warm gently without boiling.
+            Serve over rice or with bread.
+          technique: "other"
+        - step_number: 9
+          instruction: >
+            FOR FREEZING: Let remaining portions cool to room temperature
+            (within 2 hours). Portion 400g each into silicone molds.
+            Freeze solid (4-6 hrs). Vacuum seal. Label with date.
+          technique: "portioning"
+
+  timing_coordination: >
+    Simple linear recipe. While chicken braises (step 6, 35 min passive),
+    prepare accompaniments (cook rice, prep salad) and set up portioning
+    station with molds and labels.
+
+  troubleshooting:
+    - problem: "Sauce too thin"
+      solution: "Remove chicken, reduce sauce uncovered on medium heat 5-10 min."
+    - problem: "Paprika tastes bitter"
+      solution: "Was likely added to a too-hot pan. Next time, remove from heat before adding."
+    - problem: "Cream separated after adding"
+      solution: "Heat was too high. Warm gently on low, do not boil."
+
+storage:
+  freezing:
+    is_freezable: true
+    method: >
+      Portion 400g into silicone molds. Freeze solid 4-6 hours.
+      Vacuum seal each portion. Label: "Pollo Paprikás - [date]"
+    max_storage_months: 3
+    freeze_without:
+      - ingredient: "cream"
+        reason: "Separates and becomes grainy when frozen"
+        add_at: "Add 80-100ml per portion during reheating. Warm gently, do not boil."
+      - ingredient: "fresh parsley"
+        reason: "Loses color and texture"
+        add_at: "Chop and sprinkle at serving"
+    pre_freeze_notes: >
+      Cool within 2 hours. If chicken is bone-in, consider shredding
+      off the bone before portioning for easier reheating.
+
+  reheating:
+    - method: "water_bath"
+      temperature: "70-80°C"
+      duration: "25-35 min"
+      instructions: "Submerge vacuum-sealed bag in water at 70-80°C. Do not boil."
+      post_reheat_steps:
+        - "Transfer contents to a small saucepan over medium-low heat"
+        - "Add 80-100ml cream"
+        - "Stir gently and warm 2-3 minutes without boiling"
+        - "Taste and adjust salt"
+        - "Serve over rice or with crusty bread, garnish with parsley"
+    - method: "stovetop"
+      temperature: "medium-low"
+      duration: "8-12 min"
+      instructions: "Thaw overnight in fridge. Open bag, transfer to saucepan."
+      post_reheat_steps:
+        - "Warm through on medium-low, stirring occasionally"
+        - "Add cream once hot, warm 2-3 min without boiling"
+
+  fresh_accompaniments:
+    - item: "Steamed rice"
+      notes: "Can also batch cook and freeze rice separately"
+    - item: "Green salad"
+      notes: "For partner — mixed greens, olive oil, lemon dressing"
+    - item: "Crusty bread"
+      notes: "For soaking up the sauce"
+
+pantry:
+  last_cooked: "2026-01-20T18:00:00Z"
+  times_cooked: 1
+  current_frozen_portions: 6
+  rating: 4.5
+  notes_from_cooking:
+    - date: "2026-01-20"
+      note: >
+        First attempt, turned out excellent. Paprika was the star.
+        Cream at reheating method worked perfectly — silky sauce.
+        Next time try with a touch more smoked paprika.
+
+nutrition_per_serving:
+  calories: 380
+  protein_grams: 35
+  fat_grams: 22
+  net_carbs_grams: 6
+  fiber_grams: 2
+  notes: "Excludes cream (add ~80 kcal) and rice accompaniment"

@@ -19,13 +19,16 @@
     "e2e:seed": "npx tsx e2e/scripts/seed-test-users.ts",
     "e2e:cleanup": "npx tsx e2e/scripts/cleanup-test-users.ts",
     "seed:ingredients": "npx tsx scripts/seed-ingredients.ts",
-    "seed:prepared-foods": "npx tsx scripts/seed-prepared-foods.ts"
+    "seed:prepared-foods": "npx tsx scripts/seed-prepared-foods.ts",
+    "seed:recipes": "npx tsx scripts/seed-recipes.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
     "firebase": "^12.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.13.1",
+    "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

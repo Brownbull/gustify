@@ -1,0 +1,144 @@
+import { initializeApp, cert } from 'firebase-admin/app'
+import { getFirestore, Timestamp } from 'firebase-admin/firestore'
+import { SEED_RECIPES } from './data/seed-recipes.js'
+import { RecipeSchema } from '../src/types/recipe.js'
+import { createRequire } from 'module'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+
+const serviceAccountPath = path.resolve(__dirname, '../.keys/gastify/serviceAccountKey.staging.json')
+const serviceAccount = require(serviceAccountPath)
+
+const app = initializeApp({
+  credential: cert(serviceAccount),
+})
+
+const adminDb = getFirestore(app)
+
+// Retry batch commit with exponential backoff: 1 initial attempt + up to maxRetries retries
+async function commitWithRetry(
+  batch: ReturnType<typeof adminDb.batch>,
+  batchNumber: number,
+  docCount: number,
+  maxRetries = 3,
+): Promise<boolean> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await batch.commit()
+      return true
+    } catch (e) {
+      if (attempt < maxRetries) {
+        const delay = 1000 * 2 ** attempt // 1s, 2s, 4s, ...
+        console.warn(
+          `  Batch ${batchNumber} attempt ${attempt + 1}/${maxRetries + 1} failed, retrying in ${delay}ms...`,
+          e,
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      } else {
+        console.error(
+          `  ERROR: Batch ${batchNumber} (${docCount} docs) failed after ${maxRetries + 1} attempts:`,
+          e,
+        )
+      }
+    }
+  }
+  return false
+}
+
+async function seedRecipes(): Promise<boolean> {
+  console.log('Seeding recipes into staging Firestore...\n')
+  console.log(`Total seed recipes: ${SEED_RECIPES.length}\n`)
+
+  // Check existing recipes for idempotency
+  const existingSnapshot = await adminDb.collection('recipes').select().get()
+  const existingIds = new Set(existingSnapshot.docs.map((doc) => doc.id))
+
+  const newRecipes = SEED_RECIPES.filter((r) => !existingIds.has(r.id))
+  const skippedCount = SEED_RECIPES.length - newRecipes.length
+
+  if (skippedCount > 0) {
+    console.log(`  Skipping ${skippedCount} already-existing recipes.`)
+  }
+
+  if (newRecipes.length === 0) {
+    console.log('\nAll recipes already exist. Nothing to seed.')
+    return false
+  }
+
+  // Validate all recipes against Zod schema before writing
+  const invalid: string[] = []
+  for (const recipe of newRecipes) {
+    const result = RecipeSchema.safeParse(recipe)
+    if (!result.success) {
+      invalid.push(`  "${recipe.name}" (${recipe.id}): ${result.error.message}`)
+    }
+  }
+  if (invalid.length > 0) {
+    console.error(`\nSchema validation failed for ${invalid.length} recipe(s):\n${invalid.join('\n')}`)
+    process.exit(1)
+  }
+
+  console.log(`  Writing ${newRecipes.length} new recipes...\n`)
+
+  const BATCH_SIZE = 500
+  let batchNumber = 0
+  let successCount = 0
+  let batch = adminDb.batch()
+  let inBatch = 0
+  let errorCount = 0
+
+  for (const recipe of newRecipes) {
+    const docRef = adminDb.collection('recipes').doc(recipe.id)
+    const { id: _id, ...docData } = recipe
+
+    batch.set(docRef, {
+      ...docData,
+      createdAt: Timestamp.now(),
+    })
+    inBatch++
+
+    if (inBatch >= BATCH_SIZE) {
+      batchNumber++
+      const success = await commitWithRetry(batch, batchNumber, inBatch)
+      if (success) {
+        successCount++
+        console.log(`  Batch ${batchNumber} committed (${inBatch} docs)`)
+      } else {
+        errorCount += inBatch
+      }
+      batch = adminDb.batch()
+      inBatch = 0
+    }
+  }
+
+  if (inBatch > 0) {
+    batchNumber++
+    const success = await commitWithRetry(batch, batchNumber, inBatch)
+    if (success) {
+      successCount++
+      console.log(`  Batch ${batchNumber} committed (${inBatch} docs)`)
+    } else {
+      errorCount += inBatch
+    }
+  }
+
+  console.log(`\n--- Summary ---`)
+  console.log(`Seeded: ${newRecipes.length - errorCount} recipes`)
+  console.log(`Skipped: ${skippedCount} existing recipes`)
+  if (errorCount > 0) {
+    console.log(`Failed: ${errorCount} recipes (${batchNumber - successCount} batches)`)
+  }
+  console.log(`Batches committed: ${successCount}/${batchNumber}`)
+
+  return errorCount > 0
+}
+
+seedRecipes()
+  .then((hadErrors) => process.exit(hadErrors ? 1 : 0))
+  .catch((e) => {
+    console.error('Seed failed:', e)
+    process.exit(1)
+  })

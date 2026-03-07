@@ -1,22 +1,14 @@
-import type { Recipe } from '@/types/recipe'
-
-const COMPLEXITY_LABELS = ['', 'Muy fácil', 'Fácil', 'Intermedio', 'Avanzado', 'Experto']
-
-const NOVELTY_ICONS: Record<string, string> = {
-  cuisine: '\uD83C\uDF0D',
-  technique: '\uD83D\uDD27',
-  ingredient: '\uD83C\uDF31',
-}
+import type { RankedRecipe } from '@/stores/recipeStore'
+import { getMatchColorClass } from '@/lib/matchColor'
+import { COMPLEXITY_LABELS } from '@/lib/recipe-constants'
+import { sanitizeText } from '@/lib/sanitize'
 
 interface RecipeCardProps {
-  recipe: Recipe
-  onSelect: (recipe: Recipe) => void
+  recipe: RankedRecipe
+  onSelect: (recipe: RankedRecipe) => void
 }
 
 export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
-  const availableCount = recipe.ingredients.filter((i) => i.inPantry).length
-  const totalCount = recipe.ingredients.length
-
   return (
     <button
       type="button"
@@ -27,17 +19,11 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
       {/* Top row: name + match badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-semibold text-primary-dark">{recipe.name}</h3>
-          <p className="mt-0.5 text-xs text-primary-dark/50">{recipe.cuisine}</p>
+          <h3 className="truncate text-sm font-semibold text-primary-dark">{sanitizeText(recipe.name)}</h3>
+          <p className="mt-0.5 text-xs text-primary-dark/50">{sanitizeText(recipe.cuisine)}</p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-            recipe.pantryMatchPct >= 80
-              ? 'bg-green-100 text-green-700'
-              : recipe.pantryMatchPct >= 50
-                ? 'bg-amber-100 text-amber-700'
-                : 'bg-red-100 text-red-700'
-          }`}
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${getMatchColorClass(recipe.pantryMatchPct)}`}
         >
           {recipe.pantryMatchPct}%
         </span>
@@ -45,7 +31,7 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
 
       {/* Description */}
       <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-primary-dark/60">
-        {recipe.description}
+        {sanitizeText(recipe.description)}
       </p>
 
       {/* Meta row */}
@@ -70,25 +56,11 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
 
         <span className="text-primary/20">|</span>
 
-        {/* Ingredients availability */}
+        {/* Ingredient count */}
         <span>
-          {availableCount}/{totalCount} ing.
+          {recipe.ingredients.length} ing.
         </span>
       </div>
-
-      {/* Novelty badges */}
-      {recipe.noveltyBadges.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {recipe.noveltyBadges.map((badge) => (
-            <span
-              key={`${badge.type}-${badge.label}`}
-              className="inline-flex items-center gap-0.5 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700"
-            >
-              {NOVELTY_ICONS[badge.type]} {badge.label}
-            </span>
-          ))}
-        </div>
-      )}
     </button>
   )
 }

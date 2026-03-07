@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { CATEGORY_META, CATEGORY_COLORS, CATEGORY_ORDER } from '@/lib/categories'
@@ -21,11 +22,8 @@ const EXPIRY_OPTIONS: { value: ExpiryStatus | 'all'; label: string; dot?: string
   { value: 'expired', label: 'Vencido', dot: 'bg-red-500' },
 ]
 
-interface PantryPageProps {
-  onNavigateToMap: () => void
-}
-
-export default function PantryPage({ onNavigateToMap }: PantryPageProps) {
+export default function PantryPage() {
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const items = usePantryStore((s) => s.items)
   const loading = usePantryStore((s) => s.loading)
@@ -125,7 +123,7 @@ export default function PantryPage({ onNavigateToMap }: PantryPageProps) {
         </p>
         <button
           type="button"
-          onClick={onNavigateToMap}
+          onClick={() => navigate('/map-items')}
           className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
         >
           Ir a Mapear

@@ -94,7 +94,7 @@ test.describe('MapItems page', () => {
 
     await page.screenshot({ path: `${RESULTS_DIR}/01-home-after-login.png`, fullPage: true })
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     await page.screenshot({ path: `${RESULTS_DIR}/02-mapear-loaded.png`, fullPage: true })
@@ -137,7 +137,7 @@ test.describe('MapItems page', () => {
   test('modal shows segmented control with Ingredientes and Preparadas tabs', async ({ page, loginAs }) => {
     await loginAs('principiante')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     // Click the first unmapped item
@@ -170,7 +170,7 @@ test.describe('MapItems page', () => {
   test('can switch to Preparadas tab and see cuisine accordion', async ({ page, loginAs }) => {
     await loginAs('principiante')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     // Open modal
@@ -213,7 +213,7 @@ test.describe('MapItems page', () => {
 
     await loginAs('principiante')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending, mapped } = summaryLocators(page)
@@ -280,7 +280,7 @@ test.describe('MapItems page', () => {
   test('can map an item via ingredient search', async ({ page, loginAs }) => {
     await loginAs('aventurero')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending } = summaryLocators(page)
@@ -309,7 +309,7 @@ test.describe('MapItems page', () => {
   test('can map an item to a canonical prepared food', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending, mapped } = summaryLocators(page)
@@ -371,7 +371,7 @@ test.describe('MapItems page', () => {
   test('can search for a prepared food in the Preparadas tab', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending } = summaryLocators(page)
@@ -404,7 +404,7 @@ test.describe('MapItems page', () => {
   test('can skip an item and see it in Omitidos', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending } = summaryLocators(page)
@@ -442,7 +442,7 @@ test.describe('MapItems page', () => {
   test('can restore a skipped item', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending } = summaryLocators(page)
@@ -480,7 +480,7 @@ test.describe('MapItems page', () => {
   test('"No está en la lista" shows unknown item dialog', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending } = summaryLocators(page)
@@ -520,7 +520,7 @@ test.describe('MapItems page', () => {
   test('can mark item as unknown ingredient', async ({ page, loginAs }) => {
     await loginAs('comodo')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending, mapped } = summaryLocators(page)
@@ -568,7 +568,7 @@ test.describe('MapItems page', () => {
   test('can mark item as unknown prepared food', async ({ page, loginAs }) => {
     await loginAs('aventurero')
 
-    await page.getByRole('button', { name: 'Mapear' }).click()
+    await page.getByRole('link', { name: 'Mapear' }).click()
     await waitForMapItems(page)
 
     const { pending, mapped } = summaryLocators(page)
@@ -618,7 +618,7 @@ test.describe('MapItems page', () => {
 
     for (const userKey of users) {
       await loginAs(userKey)
-      await page.getByRole('button', { name: 'Mapear' }).click()
+      await page.getByRole('link', { name: 'Mapear' }).click()
       await waitForMapItems(page)
 
       const { pending } = summaryLocators(page)
